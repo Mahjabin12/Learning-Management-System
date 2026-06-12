@@ -1,134 +1,259 @@
 import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
 import { courses } from "../../data/dummyData";
-import CourseCard from "../../components/common/CourseCard";
 
 function CourseDetails() {
   const { id } = useParams();
-  const course = courses.find((item) => item.id === Number(id)) || courses[0];
+
+  // 🔥 FIX: match string/number safely
+  const course = courses.find((item) => item.id == id);
+
+  const [tab, setTab] = useState("overview");
+  const [openSection, setOpenSection] = useState(0);
+
+  // ❗ if course not found
+  if (!course) {
+    return (
+      <div className="p-10 text-center text-red-500 text-xl">
+        Course not found 😢
+      </div>
+    );
+  }
+
+  // 🔥 FIX: price handling (UI/UX issue solved here)
+  const price = course.basePrice ?? course.price ?? 0;
+  const isFree = price === 0;
+
+  const totalLessons = course.lessons?.length || 0;
+
+  // 🔥 ENROLL FUNCTION
+  const enroll = () => {
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      alert("Please login first!");
+      window.location.href = "/login";
+      return;
+    }
+
+    if (isFree) {
+      alert(`Enrolled in FREE course: ${course.title}`);
+    } else {
+      alert(`Enrolled in $${price} course: ${course.title}`);
+    }
+  };
 
   return (
-    <main>
-      <section className="bg-slate-50 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-14 grid lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2">
-            <p className="text-sm text-blue-600 font-medium mb-4">
-              Courses / {course.category}
-            </p>
+    <div className="bg-white">
 
-            <h1 className="text-4xl font-bold text-slate-950">
+      {/* HERO SECTION */}
+      <section className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-14 grid lg:grid-cols-3 gap-10">
+
+          {/* LEFT SIDE */}
+          <div className="lg:col-span-2">
+            <Link to="/courses" className="text-sm text-white/60 hover:text-white">
+              ← All courses
+            </Link>
+
+            <span className="ml-3 bg-white/10 px-3 py-1 rounded-full text-xs">
+              {course.category}
+            </span>
+
+            <h1 className="text-4xl font-bold mt-4">
               {course.title}
             </h1>
 
-            <p className="text-slate-600 mt-5 leading-7">
+            <p className="text-white/70 mt-4">
               {course.description}
             </p>
 
-            <div className="flex flex-wrap gap-5 mt-6 text-sm text-slate-600">
+            <div className="flex flex-wrap gap-5 mt-5 text-sm text-white/80">
               <span>⭐ {course.rating}</span>
-              <span>{course.students}+ students</span>
-              <span>{course.level}</span>
-              <span>{course.duration}</span>
+              <span>👥 {course.students}+ students</span>
+              <span>📚 {totalLessons} lessons</span>
+              <span>⏱ {course.duration}</span>
+              <span>🎓 {course.instructor}</span>
             </div>
-
-            <p className="mt-5 text-sm text-slate-500">
-              Created by{" "}
-              <span className="font-semibold text-slate-900">
-                {course.instructor}
-              </span>
-            </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-5 h-fit">
+          {/* RIGHT CARD */}
+          <div className="bg-white text-black rounded-2xl shadow-xl overflow-hidden">
+
             <img
               src={course.thumbnail}
               alt={course.title}
-              className="w-full h-52 object-cover rounded-xl"
+              className="w-full h-48 object-cover"
             />
 
-            <div className="flex items-center gap-3 mt-5">
-              <span className="text-3xl font-bold text-slate-950">
-                ${course.price}
-              </span>
-              <span className="text-slate-400 line-through">
-                ${course.oldPrice}
-              </span>
+            <div className="p-5">
+
+              {/* 💰 PRICE SHOW (UI/UX FIX) */}
+              <div className="flex items-center justify-between">
+
+                {isFree ? (
+                  <span className="text-3xl font-bold text-green-600">
+                    FREE
+                  </span>
+                ) : (
+                  <span className="text-3xl font-bold">
+                    ${price}
+                  </span>
+                )}
+
+                {course.oldPrice && !isFree && (
+                  <span className="line-through text-gray-400">
+                    ${course.oldPrice}
+                  </span>
+                )}
+
+              </div>
+
+              {/* ENROLL BUTTON */}
+              <button
+                onClick={enroll}
+                className={`w-full mt-4 text-white py-3 rounded-full transition ${
+                  isFree
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                }`}
+              >
+                {isFree ? "Enroll Free" : "Enroll Now"}
+              </button>
+
+              <Link
+                to="/cart"
+                className="block text-center mt-3 border py-3 rounded-full hover:bg-gray-50"
+              >
+                Add to Cart
+              </Link>
+
+              <ul className="mt-4 text-sm text-gray-600 space-y-2">
+                <li>✔ Full lifetime access</li>
+                <li>✔ Certificate included</li>
+                <li>
+                  ✔ {isFree
+                    ? "No payment required"
+                    : "Instant access after payment"}
+                </li>
+              </ul>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* TABS */}
+      <div className="border-b bg-white">
+        <div className="max-w-7xl mx-auto px-6 flex gap-6 text-sm font-medium">
+
+          {["overview", "curriculum", "instructor", "reviews"].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`py-4 ${
+                tab === t
+                  ? "text-indigo-600 border-b-2 border-indigo-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div className="max-w-7xl mx-auto px-6 py-10">
+
+        {/* OVERVIEW */}
+        {tab === "overview" && (
+          <div>
+            <h2 className="text-2xl font-bold">What you'll learn</h2>
+
+            <div className="grid sm:grid-cols-2 gap-3 mt-4">
+              {course.lessons?.map((l, i) => (
+                <div key={i} className="border p-3 rounded-lg">
+                  ✔ {l}
+                </div>
+              ))}
             </div>
 
-            <Link
-              to="/cart"
-              className="block text-center w-full mt-5 py-3 bg-slate-950 text-white rounded-lg hover:bg-slate-800"
-            >
-              Add to Cart
-            </Link>
+            <h2 className="text-2xl font-bold mt-10">
+              About this course
+            </h2>
 
-            <Link
-              to={`/learn/${course.id}`}
-              className="block text-center w-full mt-3 py-3 border border-slate-300 rounded-lg hover:bg-slate-50"
-            >
-              Start Learning
-            </Link>
+            <p className="text-gray-600 mt-3">
+              {course.description}
+            </p>
           </div>
-        </div>
-      </section>
+        )}
 
-      <section className="max-w-7xl mx-auto px-6 py-12 grid lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2">
-          <h2 className="text-2xl font-bold text-slate-950">
-            Course Description
-          </h2>
+        {/* CURRICULUM */}
+        {tab === "curriculum" && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">
+              Course Curriculum
+            </h2>
 
-          <p className="text-slate-600 leading-7 mt-4">
-            This course is designed to help learners build practical skills
-            through structured lessons, examples, and real project work. Each
-            lesson is organized for gradual learning and better understanding.
-          </p>
+            <div className="space-y-3">
+              {[1, 2, 3].map((sec, i) => (
+                <div key={i} className="border rounded-lg">
 
-          <h2 className="text-2xl font-bold text-slate-950 mt-10">
-            Course Curriculum
-          </h2>
+                  <button
+                    onClick={() =>
+                      setOpenSection(openSection === i ? null : i)
+                    }
+                    className="w-full flex justify-between p-4"
+                  >
+                    <span className="font-semibold">
+                      Section {i + 1}
+                    </span>
+                    <span>▼</span>
+                  </button>
 
-          <div className="border border-slate-200 rounded-2xl mt-5 overflow-hidden">
-            {course.lessons.map((lesson, index) => (
-              <div
-                key={lesson}
-                className="flex justify-between items-center px-5 py-4 border-b border-slate-100 last:border-b-0"
-              >
-                <span className="font-medium text-slate-800">
-                  {index + 1}. {lesson}
-                </span>
-                <span className="text-sm text-slate-500">45 min</span>
-              </div>
-            ))}
+                  {openSection === i && (
+                    <div className="border-t p-4 space-y-2">
+                      {course.lessons?.map((l, idx) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span>{l}</span>
+                          <span className="text-gray-500">45 min</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        <aside className="border border-slate-200 rounded-2xl p-6 h-fit">
-          <h3 className="text-xl font-bold text-slate-950">Course Includes</h3>
+        {/* INSTRUCTOR */}
+        {tab === "instructor" && (
+          <div>
+            <h2 className="text-2xl font-bold">Instructor</h2>
+            <p className="mt-3 text-gray-600">
+              {course.instructor} is an experienced instructor in{" "}
+              {course.category}.
+            </p>
+          </div>
+        )}
 
-          <ul className="space-y-3 text-sm text-slate-600 mt-5">
-            <li>✔ {course.lessons.length} lessons</li>
-            <li>✔ Lifetime access</li>
-            <li>✔ Learning progress tracking</li>
-            <li>✔ Certificate after completion</li>
-            <li>✔ Instructor support</li>
-          </ul>
-        </aside>
-      </section>
+        {/* REVIEWS */}
+        {tab === "reviews" && (
+          <div>
+            <h2 className="text-2xl font-bold">Reviews</h2>
+            <p className="mt-3 text-gray-500">
+              Students love this course ⭐
+            </p>
+          </div>
+        )}
 
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-bold text-slate-950 mb-6">
-          Related Courses
-        </h2>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {courses
-            .filter((item) => item.id !== course.id)
-            .map((item) => (
-              <CourseCard key={item.id} course={item} />
-            ))}
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }
 
