@@ -2,65 +2,51 @@ import { Link } from "react-router-dom";
 
 function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-[#050807] text-white">
-      {/* Decorative wave background */}
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        viewBox="0 0 1440 420"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path
-          d="M0 88C210 150 395 168 610 162C840 156 1030 110 1210 88C1325 74 1400 78 1440 86V0H0V88Z"
-          fill="#0d211d"
-          opacity="0.95"
-        />
-        <path
-          d="M0 150C245 210 500 226 760 210C990 196 1210 145 1440 126V0H0V150Z"
-          fill="#103b34"
-          opacity="0.45"
-        />
-        <path
-          d="M0 120C330 188 690 208 1040 176C1210 160 1350 128 1440 114V0H0V120Z"
-          fill="#07110f"
-          opacity="0.75"
-        />
-      </svg>
+    <footer className="relative overflow-hidden bg-[#050b0a] text-white pt-20">
+      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[1200px] h-[320px] bg-[#0e2d28] rounded-[100%] opacity-60" />
 
-      <div className="relative max-w-7xl mx-auto px-6 pt-24 pb-14">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-14">
           <div>
-            <h2 className="text-3xl font-extrabold text-teal-400">
-              Byway
-            </h2>
+            <Link to="/" className="flex items-center gap-2 mb-5">
+              <div className="w-9 h-9 rounded-full bg-[#18d6c3] flex items-center justify-center text-[#061311] font-black">
+                B
+              </div>
+              <span className="text-2xl font-extrabold">Byway</span>
+            </Link>
 
-            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-400">
-              A modern learning platform for online courses, student progress
-              tracking, and admin control.
+            <p className="text-sm text-white/55 leading-7 max-w-sm">
+              Byway helps learners build practical design and digital marketing
+              skills through real-world courses, portfolio projects, and career
+              growth guidance.
             </p>
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-white">Quick Links</h3>
-
-            <ul className="mt-5 space-y-3 text-sm text-slate-400">
+            <h3 className="text-lg font-bold mb-5">Quick Links</h3>
+            <ul className="space-y-3 text-sm text-white/60">
               <li>
-                <Link to="/" className="hover:text-teal-400 transition">
+                <Link to="/" className="hover:text-[#18d6c3]">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="hover:text-teal-400 transition">
-                  About
+                <Link to="/about" className="hover:text-[#18d6c3]">
+                  About Us
                 </Link>
               </li>
               <li>
-                <Link to="/courses" className="hover:text-teal-400 transition">
+                <Link to="/courses" className="hover:text-[#18d6c3]">
                   Courses
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-teal-400 transition">
+                <Link to="/blogs" className="hover:text-[#18d6c3]">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-[#18d6c3]">
                   Contact
                 </Link>
               </li>
@@ -68,42 +54,96 @@ function Footer() {
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-white">Support</h3>
-
-            <ul className="mt-5 space-y-3 text-sm text-slate-400">
-              <li>Forum Support</li>
-              <li>Help & FAQ</li>
-              <li>Contact Us</li>
-              <li>Privacy Policy</li>
+            <h3 className="text-lg font-bold mb-5">Popular Skills</h3>
+            <ul className="space-y-3 text-sm text-white/60">
+              <li>
+                <Link to="/courses" className="hover:text-[#18d6c3]">
+                  Figma Design
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="hover:text-[#18d6c3]">
+                  Canva Design
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="hover:text-[#18d6c3]">
+                  Adobe Photoshop
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="hover:text-[#18d6c3]">
+                  Logo & Branding
+                </Link>
+              </li>
+              <li>
+                <Link to="/courses" className="hover:text-[#18d6c3]">
+                  Digital Marketing
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-base font-bold text-white">Contact</h3>
+            <h3 className="text-lg font-bold mb-5">Support</h3>
+            <ul className="space-y-3 text-sm text-white/60">
+              <li>
+                <Link to="/contact" className="hover:text-[#18d6c3]">
+                  Help & FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/forgot-password" className="hover:text-[#18d6c3]">
+                  Forgot Password
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className="hover:text-[#18d6c3]">
+                  Login
+                </Link>
+              </li>
+              <li>
+                <Link to="/signup" className="hover:text-[#18d6c3]">
+                  Create Account
+                </Link>
+              </li>
+            </ul>
 
-            <address className="not-italic mt-5 space-y-3 text-sm text-slate-400">
-              <p>Dhaka, Bangladesh</p>
-              <p>support@byway.com</p>
-              <p>+880 1234 567890</p>
-            </address>
-
-            <div className="flex gap-3 mt-6">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-bold">
+            <div className="flex items-center gap-3 mt-6">
+              <a
+                href="#"
+                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#18d6c3] hover:text-[#061311]"
+              >
                 f
-              </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-500 text-sm font-bold">
-                i
-              </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500 text-sm font-bold">
-                x
-              </span>
+              </a>
+              <a
+                href="#"
+                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#18d6c3] hover:text-[#061311]"
+              >
+                in
+              </a>
+              <a
+                href="#"
+                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#18d6c3] hover:text-[#061311]"
+              >
+                ig
+              </a>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="relative border-t border-white/10 py-5 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} All rights reserved by Byway
+        <div className="border-t border-white/10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/45">
+          <p>© 2026 Byway. All rights reserved.</p>
+
+          <div className="flex items-center gap-5">
+            <Link to="/privacy" className="hover:text-[#18d6c3]">
+              Privacy
+            </Link>
+            <Link to="/terms" className="hover:text-[#18d6c3]">
+              Terms
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

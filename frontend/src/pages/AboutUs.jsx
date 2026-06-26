@@ -1,4 +1,4 @@
-function About() {
+function AboutUs() {
   return (
     <main className="max-w-7xl mx-auto px-6 py-16">
       <section className="grid lg:grid-cols-2 gap-12 items-center">
@@ -27,4 +27,4 @@ function About() {
   );
 }
 
-export default About;
+export default AboutUs;

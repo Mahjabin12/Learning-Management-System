@@ -24,11 +24,11 @@ function Signup() {
 
     login({
       name: formData.name,
-      email: formData.email,
+      email: formData.email.trim().toLowerCase(),
       role: "student",
     });
 
-    navigate("/my-learning");
+    navigate("/student/my-learning");
   };
 
   return (

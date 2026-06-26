@@ -1,14 +1,16 @@
 import CourseCard from "../../components/common/CourseCard";
 import { courses } from "../../data/dummyData";
 
-function Courses() {
+function CourseList() {
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">
       <div className="mb-10">
         <p className="text-blue-600 font-semibold text-sm">COURSES</p>
+
         <h1 className="text-4xl font-bold text-slate-950 mt-2">
           Browse Online Courses
         </h1>
+
         <p className="text-slate-500 mt-3">
           Choose a course and start learning from expert-led lessons.
         </p>
@@ -20,20 +22,35 @@ function Courses() {
 
           <div className="mb-6">
             <h3 className="font-semibold mb-3">Category</h3>
-            {["Web Development", "UI/UX Design", "Digital Marketing", "Data Science"].map(
-              (category) => (
-                <label key={category} className="block text-sm text-slate-600 mb-2">
-                  <input type="checkbox" className="mr-2" />
-                  {category}
-                </label>
-              )
-            )}
+
+            {[
+              "Figma Design",
+              "Canva Design",
+              "Adobe Creative Suite",
+              "UI/UX Design",
+              "Web Design",
+              "Logo & Branding",
+              "Product Design",
+              "Digital Marketing",
+            ].map((category) => (
+              <label
+                key={category}
+                className="block text-sm text-slate-600 mb-2"
+              >
+                <input type="checkbox" className="mr-2" />
+                {category}
+              </label>
+            ))}
           </div>
 
           <div className="mb-6">
             <h3 className="font-semibold mb-3">Level</h3>
+
             {["Beginner", "Intermediate", "Advanced"].map((level) => (
-              <label key={level} className="block text-sm text-slate-600 mb-2">
+              <label
+                key={level}
+                className="block text-sm text-slate-600 mb-2"
+              >
                 <input type="checkbox" className="mr-2" />
                 {level}
               </label>
@@ -42,10 +59,12 @@ function Courses() {
 
           <div>
             <h3 className="font-semibold mb-3">Price</h3>
+
             <label className="block text-sm text-slate-600 mb-2">
               <input type="checkbox" className="mr-2" />
               Paid
             </label>
+
             <label className="block text-sm text-slate-600">
               <input type="checkbox" className="mr-2" />
               Free
@@ -75,4 +94,4 @@ function Courses() {
   );
 }
 
-export default Courses;
+export default CourseList;

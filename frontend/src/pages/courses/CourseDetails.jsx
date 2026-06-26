@@ -4,7 +4,8 @@ import CourseCard from "../../components/common/CourseCard";
 
 function CourseDetails() {
   const { id } = useParams();
-  const course = courses.find((item) => item.id === Number(id)) || courses[0];
+
+  const course = courses.find((item) => String(item.id) === id) || courses[0];
 
   return (
     <main>
@@ -49,20 +50,21 @@ function CourseDetails() {
               <span className="text-3xl font-bold text-slate-950">
                 ${course.price}
               </span>
+
               <span className="text-slate-400 line-through">
                 ${course.oldPrice}
               </span>
             </div>
 
             <Link
-              to="/cart"
+              to="/student/cart"
               className="block text-center w-full mt-5 py-3 bg-slate-950 text-white rounded-lg hover:bg-slate-800"
             >
               Add to Cart
             </Link>
 
             <Link
-              to={`/learn/${course.id}`}
+              to={`/student/learning/${course.id}`}
               className="block text-center w-full mt-3 py-3 border border-slate-300 rounded-lg hover:bg-slate-50"
             >
               Start Learning
@@ -90,12 +92,13 @@ function CourseDetails() {
           <div className="border border-slate-200 rounded-2xl mt-5 overflow-hidden">
             {course.lessons.map((lesson, index) => (
               <div
-                key={lesson}
+                key={`${lesson}-${index}`}
                 className="flex justify-between items-center px-5 py-4 border-b border-slate-100 last:border-b-0"
               >
                 <span className="font-medium text-slate-800">
                   {index + 1}. {lesson}
                 </span>
+
                 <span className="text-sm text-slate-500">45 min</span>
               </div>
             ))}
@@ -123,6 +126,7 @@ function CourseDetails() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {courses
             .filter((item) => item.id !== course.id)
+            .slice(0, 4)
             .map((item) => (
               <CourseCard key={item.id} course={item} />
             ))}
