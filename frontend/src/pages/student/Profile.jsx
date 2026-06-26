@@ -1,111 +1,79 @@
 import { useAuth } from "../../context/AuthContext";
-import { enrollments, orders } from "../../data/dummyData";
 
 function Profile() {
   const { user } = useAuth();
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-12">
-      <div className="grid lg:grid-cols-4 gap-8">
-        <aside className="border border-slate-200 rounded-2xl p-6 h-fit">
-          <div className="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold mx-auto">
-            {user?.name?.charAt(0) || "S"}
+    <div>
+      <p className="text-sm font-semibold text-teal-500">PROFILE</p>
+      <h1 className="text-4xl font-black mt-2 text-[var(--student-heading)]">
+        My Profile
+      </h1>
+      <p className="text-[var(--student-muted)] mt-3 mb-8">
+        Manage your student profile and learning identity.
+      </p>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        <aside className="rounded-3xl border border-[var(--student-border)] bg-[var(--student-card)] backdrop-blur-xl p-6 text-center h-fit">
+          <div className="w-24 h-24 rounded-full bg-teal-400 text-[#061311] flex items-center justify-center text-4xl font-black mx-auto">
+            S
           </div>
 
-          <h2 className="text-center font-bold text-xl mt-4">{user?.name}</h2>
-          <p className="text-center text-sm text-slate-500">{user?.email}</p>
-          <p className="text-center text-sm text-blue-600 font-semibold mt-2">
-            {user?.role}
+          <h2 className="text-2xl font-bold mt-5 text-[var(--student-heading)]">
+            {user?.name || "Student User"}
+          </h2>
+
+          <p className="text-[var(--student-muted)] mt-2">
+            {user?.email || "student@lms.com"}
           </p>
+
+          <span className="inline-block mt-4 px-3 py-1 rounded-full bg-teal-400/10 text-teal-500 border border-teal-400/20 text-xs">
+            Active Student
+          </span>
         </aside>
 
-        <section className="lg:col-span-3 space-y-8">
-          <div className="border border-slate-200 rounded-2xl p-6">
-            <h1 className="text-2xl font-bold text-slate-950 mb-6">
-              Profile Information
-            </h1>
+        <form className="lg:col-span-2 rounded-3xl border border-[var(--student-border)] bg-[var(--student-card)] backdrop-blur-xl p-6 space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              defaultValue={user?.name || "Student User"}
+              className="px-4 py-3 rounded-2xl bg-[var(--student-input)] border border-[var(--student-border)] text-[var(--student-heading)] outline-none"
+            />
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <input
-                className="border border-slate-300 rounded-lg px-4 py-3"
-                defaultValue={user?.name}
-              />
+            <input
+              type="email"
+              defaultValue={user?.email || "student@lms.com"}
+              className="px-4 py-3 rounded-2xl bg-[var(--student-input)] border border-[var(--student-border)] text-[var(--student-heading)] outline-none"
+            />
 
-              <input
-                className="border border-slate-300 rounded-lg px-4 py-3"
-                defaultValue={user?.email}
-              />
+            <input
+              type="text"
+              defaultValue="Dhaka, Bangladesh"
+              className="px-4 py-3 rounded-2xl bg-[var(--student-input)] border border-[var(--student-border)] text-[var(--student-heading)] outline-none"
+            />
 
-              <input
-                className="border border-slate-300 rounded-lg px-4 py-3"
-                defaultValue="+880 1234 567890"
-              />
-
-              <input
-                className="border border-slate-300 rounded-lg px-4 py-3"
-                defaultValue="Dhaka, Bangladesh"
-              />
-            </div>
-
-            <button className="mt-6 px-6 py-3 bg-slate-950 text-white rounded-lg">
-              Save Changes
-            </button>
+            <input
+              type="text"
+              defaultValue="Design learner"
+              className="px-4 py-3 rounded-2xl bg-[var(--student-input)] border border-[var(--student-border)] text-[var(--student-heading)] outline-none"
+            />
           </div>
 
-          <div className="border border-slate-200 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-slate-950 mb-5">
-              Recent Enrollments
-            </h2>
+          <textarea
+            rows="4"
+            defaultValue="I am learning design and digital skills for career growth."
+            className="w-full px-4 py-3 rounded-2xl bg-[var(--student-input)] border border-[var(--student-border)] text-[var(--student-heading)] outline-none"
+          />
 
-            <div className="space-y-4">
-              {enrollments.slice(0, 2).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between border-b border-slate-100 pb-4 last:border-b-0"
-                >
-                  <div>
-                    <h3 className="font-semibold text-slate-900">
-                      {item.course}
-                    </h3>
-                    <p className="text-sm text-slate-500">
-                      Progress: {item.progress}
-                    </p>
-                  </div>
-
-                  <span className="text-sm font-semibold text-blue-600">
-                    {item.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border border-slate-200 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-slate-950 mb-5">
-              Purchase History
-            </h2>
-
-            <div className="space-y-4">
-              {orders.slice(0, 2).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between border-b border-slate-100 pb-4 last:border-b-0"
-                >
-                  <div>
-                    <h3 className="font-semibold text-slate-900">
-                      {item.course}
-                    </h3>
-                    <p className="text-sm text-slate-500">{item.date}</p>
-                  </div>
-
-                  <span className="font-bold">${item.amount}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          <button
+            type="button"
+            className="px-6 py-3 rounded-full bg-teal-400 text-[#061311] font-bold hover:bg-white transition"
+          >
+            Save Profile
+          </button>
+        </form>
       </div>
-    </main>
+    </div>
   );
 }
 
