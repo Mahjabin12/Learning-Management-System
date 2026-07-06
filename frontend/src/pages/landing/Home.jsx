@@ -1,7 +1,7 @@
 import Hero from "./sections/Hero";
+import About from "./sections/About";
 import Categories from "./sections/Categories";
 import FeaturedCourses from "./sections/FeaturedCourses";
-import About from "./sections/About";
 import TopInstructors from "./sections/TopInstructors";
 import TopReviews from "./sections/TopReviews";
 
@@ -11,12 +11,11 @@ function Home() {
   return (
     <>
       <Hero />
-      <Categories />
-      <FeaturedCourses />
       <About />
+      <Categories />     
+      <FeaturedCourses />      
       <TopInstructors />
-      <TopReviews />
-      
+      <TopReviews />      
       <Blogs />
     </>
   );

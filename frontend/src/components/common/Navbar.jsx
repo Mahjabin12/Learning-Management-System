@@ -2,17 +2,32 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+const navItems = [
+  { label: "Home", path: "/" },
+  { label: "About Us", path: "/about" },
+  { label: "Courses", path: "/courses" },
+  { label: "Categories", path: "/categories" },
+  { label: "Blog", path: "/blogs" },
+  { label: "Contact", path: "/contact" },
+];
+
+function getSavedTheme() {
+  if (typeof window === "undefined") return "dark";
+  return localStorage.getItem("theme") || "dark";
+}
+
 function UserIcon() {
   return (
     <svg
-      className="w-4 h-4"
       viewBox="0 0 24 24"
+      className="h-5 w-5"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
+      aria-hidden="true"
     >
-      <path d="M20 21a8 8 0 0 0-16 0" />
-      <circle cx="12" cy="7" r="4" />
+      <circle cx="12" cy="7.5" r="3.5" />
+      <path d="M5 21a7 7 0 0 1 14 0" />
     </svg>
   );
 }
@@ -20,15 +35,16 @@ function UserIcon() {
 function SunIcon() {
   return (
     <svg
-      className="w-4 h-4"
       viewBox="0 0 24 24"
+      className="h-5 w-5"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
       strokeLinecap="round"
+      aria-hidden="true"
     >
       <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
     </svg>
   );
 }
@@ -36,43 +52,71 @@ function SunIcon() {
 function MoonIcon() {
   return (
     <svg
-      className="w-4 h-4"
       viewBox="0 0 24 24"
+      className="h-5 w-5"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
-      strokeLinecap="round"
+      aria-hidden="true"
     >
-      <path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z" />
+      <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z" />
     </svg>
   );
 }
 
-function MenuIcon() {
+function MenuIcon({ open }) {
   return (
-    <svg
-      className="w-6 h-6"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <path d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
+    <span className="relative block h-5 w-6">
+      <span
+        className={`absolute left-0 top-[2px] h-[2px] w-6 rounded-full bg-current transition-all duration-300 ${
+          open ? "translate-y-[8px] rotate-45" : ""
+        }`}
+      />
+
+      <span
+        className={`absolute left-0 top-[10px] h-[2px] w-6 rounded-full bg-current transition-all duration-300 ${
+          open ? "scale-x-0 opacity-0" : ""
+        }`}
+      />
+
+      <span
+        className={`absolute left-0 top-[18px] h-[2px] w-6 rounded-full bg-current transition-all duration-300 ${
+          open ? "-translate-y-[8px] -rotate-45" : ""
+        }`}
+      />
+    </span>
   );
 }
 
-function CloseIcon() {
+function DesktopNavItem({ item, isDark }) {
   return (
-    <svg
-      className="w-6 h-6"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
+    <NavLink to={item.path} className="group relative px-1 py-5">
+      {({ isActive }) => (
+        <>
+          <span
+            className={`text-sm font-bold transition-colors duration-300 ${
+              isActive
+                ? isDark
+                  ? "text-white"
+                  : "text-[#10241E]"
+                : isDark
+                ? "text-slate-400 group-hover:text-white"
+                : "text-slate-500 group-hover:text-[#10241E]"
+            }`}
+          >
+            {item.label}
+          </span>
+
+          <span
+            className={`absolute bottom-[13px] left-0 h-[2px] w-full origin-left rounded-full bg-gradient-to-r from-teal-300 to-emerald-400 transition-transform duration-300 ${
+              isActive
+                ? "scale-x-100"
+                : "scale-x-0 group-hover:scale-x-100"
+            }`}
+          />
+        </>
+      )}
+    </NavLink>
   );
 }
 
@@ -80,26 +124,54 @@ function Navbar() {
   const { user, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(getSavedTheme);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isDark = theme === "dark";
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    setTheme(savedTheme);
-    document.body.style.backgroundColor =
-      savedTheme === "dark" ? "#061311" : "#e8f3ee";
+    const applyTheme = () => {
+      const savedTheme = getSavedTheme();
+
+      setTheme(savedTheme);
+
+      document.body.style.backgroundColor =
+        savedTheme === "dark" ? "#020a08" : "#effaf5";
+    };
+
+    applyTheme();
+
+    window.addEventListener("themechange", applyTheme);
+    window.addEventListener("storage", applyTheme);
+
+    return () => {
+      window.removeEventListener("themechange", applyTheme);
+      window.removeEventListener("storage", applyTheme);
+    };
+  }, []);
+
+  useEffect(() => {
+    const closeOnResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", closeOnResize);
+
+    return () => {
+      window.removeEventListener("resize", closeOnResize);
+    };
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = isDark ? "light" : "dark";
+    const nextTheme = isDark ? "light" : "dark";
 
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    localStorage.setItem("theme", nextTheme);
+    setTheme(nextTheme);
 
     document.body.style.backgroundColor =
-      newTheme === "dark" ? "#061311" : "#e8f3ee";
+      nextTheme === "dark" ? "#020a08" : "#effaf5";
 
     window.dispatchEvent(new Event("themechange"));
   };
@@ -122,211 +194,202 @@ function Navbar() {
       : "/student/dashboard";
 
   const avatarText =
-    user?.role === "admin"
+    user?.name?.trim()?.charAt(0)?.toUpperCase() ||
+    (user?.role === "admin"
       ? "A"
       : user?.role === "instructor"
       ? "I"
-      : "S";
+      : "S");
 
-  const navClass = ({ isActive }) => {
-    if (isDark) {
-      return isActive
-        ? "px-4 py-2 rounded-md bg-white text-[#061311] text-xs font-bold shadow-sm"
-        : "px-4 py-2 rounded-md text-white/65 hover:text-white hover:bg-white/10 text-xs font-medium transition duration-300";
-    }
+  const navbarTheme = isDark
+    ? "border-white/[0.07] bg-[#03110e]/82 text-white"
+    : "border-emerald-900/10 bg-white/80 text-[#10241E]";
 
-    return isActive
-      ? "px-4 py-2 rounded-md bg-[#061311] text-white text-xs font-bold shadow-sm"
-      : "px-4 py-2 rounded-md text-slate-700 hover:text-[#061311] hover:bg-white/70 text-xs font-medium transition duration-300";
-  };
+  const mobilePanelTheme = isDark
+    ? "border-white/10 bg-[#061713]/96 text-white"
+    : "border-emerald-900/10 bg-white/96 text-[#10241E]";
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-colors duration-300 ${
-        isDark ? "bg-[#061311]" : "bg-[#e8f3ee]"
-      }`}
+      className={`sticky top-0 z-[120] border-b backdrop-blur-2xl transition-colors duration-300 ${navbarTheme}`}
     >
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="h-14 flex items-center justify-between gap-5">
-          <Link to="/" onClick={closeMobile} className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-teal-400 text-[#061311] flex items-center justify-center font-black text-xs shadow-[0_0_25px_rgba(45,212,191,0.35)]">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-teal-400/[0.035] to-transparent" />
+
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-px w-[82%] -translate-x-1/2 bg-gradient-to-r from-transparent via-teal-400/55 to-transparent shadow-[0_0_18px_rgba(45,212,191,0.30)]" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Link
+            to="/"
+            onClick={closeMobile}
+            className="group flex shrink-0 items-center gap-2.5"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-300 via-emerald-300 to-teal-500 text-xs font-black text-[#03110e] shadow-[0_10px_30px_rgba(45,212,191,0.28)] transition-all duration-300 group-hover:rotate-6 group-hover:scale-105">
               SL
             </div>
 
             <span
-              className={`text-xl font-extrabold tracking-tight ${
-                isDark ? "text-white" : "text-[#061311]"
+              className={`text-xl font-black tracking-tight sm:text-2xl ${
+                isDark ? "text-white" : "text-[#10241E]"
               }`}
             >
               Skillora
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-2">
-            <NavLink to="/" className={navClass}>
-              Home
-            </NavLink>
-
-            <NavLink to="/about" className={navClass}>
-              About Us
-            </NavLink>
-
-            <NavLink to="/courses" className={navClass}>
-              Courses
-            </NavLink>
-
-            <NavLink to="/categories" className={navClass}>
-              Categories
-            </NavLink>
-
-            <NavLink to="/blogs" className={navClass}>
-              Blog
-            </NavLink>
-
-            <NavLink to="/contact" className={navClass}>
-              Contact
-            </NavLink>
+          <nav className="hidden items-center gap-7 lg:flex">
+            {navItems.map((item) => (
+              <DesktopNavItem
+                key={item.path}
+                item={item}
+                isDark={isDark}
+              />
+            ))}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2.5">
             <button
               type="button"
               onClick={toggleTheme}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition duration-300 ${
+              className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 hover:-translate-y-0.5 hover:rotate-12 ${
                 isDark
-                  ? "bg-white/10 text-white/75 hover:text-teal-400 hover:bg-white/15"
-                  : "bg-white/70 text-slate-700 hover:text-emerald-700"
+                  ? "border-white/10 bg-white/[0.08] text-slate-300 hover:bg-teal-400 hover:text-[#03110e]"
+                  : "border-emerald-900/10 bg-white text-slate-600 shadow-sm hover:bg-teal-400 hover:text-[#03110e]"
               }`}
               aria-label="Toggle theme"
             >
               {isDark ? <SunIcon /> : <MoonIcon />}
             </button>
 
-            {!isLoggedIn ? (
-              <Link
-                to="/login"
-                className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition duration-300 ${
-                  isDark
-                    ? "border border-white/15 text-white/80 hover:bg-teal-400 hover:text-[#061311]"
-                    : "border border-emerald-900/10 bg-white/70 text-slate-800 hover:bg-emerald-600 hover:text-white"
-                }`}
-              >
-                <UserIcon />
-                Login
-              </Link>
-            ) : (
-              <>
+            <div className="hidden lg:flex lg:items-center lg:gap-2.5">
+              {!isLoggedIn ? (
                 <Link
-                  to={dashboardPath}
-                  className="w-9 h-9 rounded-full bg-teal-400 text-[#061311] flex items-center justify-center font-black uppercase hover:bg-white transition"
-                >
-                  {avatarText}
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                  to="/login"
+                  className={`inline-flex h-10 items-center gap-2 rounded-full border px-5 text-sm font-black transition-all duration-300 hover:-translate-y-0.5 ${
                     isDark
-                      ? "border border-white/15 text-white/80 hover:bg-red-500/20 hover:text-red-300"
-                      : "border border-emerald-900/10 bg-white/70 text-slate-800 hover:bg-red-50 hover:text-red-600"
+                      ? "border-white/10 bg-white/[0.045] text-white hover:border-teal-300/50 hover:bg-teal-400/10"
+                      : "border-emerald-900/10 bg-white text-[#10241E] shadow-sm hover:border-teal-500/40 hover:bg-teal-50"
                   }`}
                 >
-                  Logout
-                </button>
-              </>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setMobileOpen((prev) => !prev)}
-            className={`lg:hidden ${isDark ? "text-white" : "text-[#061311]"}`}
-            aria-label="Toggle mobile menu"
-          >
-            {mobileOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
-        </div>
-
-        {mobileOpen && (
-          <div className="lg:hidden py-5">
-            <nav className="flex flex-col gap-3">
-              <NavLink to="/" onClick={closeMobile} className={navClass}>
-                Home
-              </NavLink>
-
-              <NavLink to="/about" onClick={closeMobile} className={navClass}>
-                About Us
-              </NavLink>
-
-              <NavLink to="/courses" onClick={closeMobile} className={navClass}>
-                Courses
-              </NavLink>
-
-              <NavLink
-                to="/categories"
-                onClick={closeMobile}
-                className={navClass}
-              >
-                Categories
-              </NavLink>
-
-              <NavLink to="/blogs" onClick={closeMobile} className={navClass}>
-                Blog
-              </NavLink>
-
-              <NavLink to="/contact" onClick={closeMobile} className={navClass}>
-                Contact
-              </NavLink>
-
-              {isLoggedIn && (
-                <NavLink
-                  to={dashboardPath}
-                  onClick={closeMobile}
-                  className={navClass}
-                >
-                  Dashboard
-                </NavLink>
-              )}
-
-              <div className="flex gap-3 pt-3">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center ${
-                    isDark ? "bg-white/10 text-white" : "bg-white/70 text-slate-800"
-                  }`}
-                  aria-label="Toggle theme"
-                >
-                  {isDark ? <SunIcon /> : <MoonIcon />}
-                </button>
-
-                {!isLoggedIn ? (
+                  <UserIcon />
+                  Login
+                </Link>
+              ) : (
+                <>
                   <Link
-                    to="/login"
-                    onClick={closeMobile}
-                    className={`flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-semibold ${
-                      isDark
-                        ? "border border-white/15 text-white"
-                        : "bg-white/80 text-[#061311]"
-                    }`}
+                    to={dashboardPath}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-300 to-emerald-500 text-sm font-black uppercase text-[#03110e] shadow-[0_10px_25px_rgba(45,212,191,0.22)] transition-all duration-300 hover:scale-105"
+                    aria-label="Open dashboard"
                   >
-                    <UserIcon />
-                    Login
+                    {avatarText}
                   </Link>
-                ) : (
+
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex-1 px-5 py-3 rounded-full bg-teal-400 text-[#061311] font-bold"
+                    className={`h-10 rounded-full border px-4 text-sm font-bold transition-all duration-300 ${
+                      isDark
+                        ? "border-white/10 bg-white/[0.04] text-slate-300 hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300"
+                        : "border-emerald-900/10 bg-white text-slate-700 hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                    }`}
                   >
                     Logout
                   </button>
-                )}
-              </div>
-            </nav>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileOpen((previous) => !previous)}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border lg:hidden ${
+                isDark
+                  ? "border-white/10 bg-white/[0.08] text-white"
+                  : "border-emerald-900/10 bg-white text-[#10241E]"
+              }`}
+              aria-label="Toggle navigation menu"
+              aria-expanded={mobileOpen}
+            >
+              <MenuIcon open={mobileOpen} />
+            </button>
           </div>
-        )}
+        </div>
+      </div>
+
+      <div
+        className={`absolute left-0 top-full w-full overflow-hidden transition-all duration-500 lg:hidden ${
+          mobileOpen
+            ? "visible max-h-[620px] opacity-100"
+            : "invisible max-h-0 opacity-0"
+        }`}
+      >
+        <div
+          className={`mx-3 mt-2 rounded-3xl border p-3 shadow-2xl backdrop-blur-2xl sm:mx-6 ${mobilePanelTheme}`}
+        >
+          <nav className="grid gap-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={closeMobile}
+                className={({ isActive }) =>
+                  `rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 ${
+                    isActive
+                      ? "bg-teal-400 text-[#03110e]"
+                      : isDark
+                      ? "text-slate-300 hover:bg-white/[0.08] hover:text-white"
+                      : "text-slate-600 hover:bg-teal-50 hover:text-[#10241E]"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+
+            {isLoggedIn && (
+              <NavLink
+                to={dashboardPath}
+                onClick={closeMobile}
+                className={({ isActive }) =>
+                  `rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 ${
+                    isActive
+                      ? "bg-teal-400 text-[#03110e]"
+                      : isDark
+                      ? "text-slate-300 hover:bg-white/[0.08]"
+                      : "text-slate-600 hover:bg-teal-50"
+                  }`
+                }
+              >
+                Dashboard
+              </NavLink>
+            )}
+
+            <div
+              className={`mt-2 border-t pt-3 ${
+                isDark ? "border-white/10" : "border-emerald-900/10"
+              }`}
+            >
+              {!isLoggedIn ? (
+                <Link
+                  to="/login"
+                  onClick={closeMobile}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-400 px-5 py-3 text-sm font-black text-[#03110e]"
+                >
+                  <UserIcon />
+                  Login
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full rounded-xl bg-teal-400 px-5 py-3 text-sm font-black text-[#03110e]"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </nav>
+        </div>
       </div>
     </header>
   );
