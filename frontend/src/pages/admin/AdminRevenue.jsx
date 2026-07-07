@@ -1,18 +1,61 @@
+import { useEffect, useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import StatCard from "../../components/admin/StatCard";
 import DataTable from "../../components/admin/DataTable";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { orders } from "../../data/dummyData";
 
+function useAdminTheme() {
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+
+  useEffect(() => {
+    const syncTheme = () => setTheme(localStorage.getItem("theme") || "dark");
+
+    syncTheme();
+    window.addEventListener("themechange", syncTheme);
+    window.addEventListener("storage", syncTheme);
+
+    return () => {
+      window.removeEventListener("themechange", syncTheme);
+      window.removeEventListener("storage", syncTheme);
+    };
+  }, []);
+
+  return theme;
+}
+
 function AdminRevenue() {
+  const theme = useAdminTheme();
+  const isDark = theme === "dark";
+
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const totalRevenue = safeOrders.reduce(
+    (sum, order) => sum + Number(order.amount || 0),
+    0
+  );
+
+  const headingClass = isDark ? "text-white" : "text-[#061311]";
+
+  const chartCardClass = isDark
+    ? "bg-white/[0.06] border-teal-400/15 shadow-[0_22px_60px_rgba(0,0,0,0.25)]"
+    : "bg-white/80 border-emerald-900/10 shadow-[0_18px_45px_rgba(6,19,17,0.08)]";
+
+  const chartBg = isDark
+    ? "bg-[#07110f]/70 border-teal-400/10"
+    : "bg-white/60 border-emerald-900/10";
+
   const columns = [
     { key: "id", label: "Order ID" },
-    { key: "student", label: "Student" },
+    {
+      key: "student",
+      label: "Student",
+      render: (row) => <span className={`font-semibold ${headingClass}`}>{row.student}</span>,
+    },
     { key: "course", label: "Course" },
     {
       key: "amount",
       label: "Amount",
-      render: (row) => `$${row.amount}`,
+      render: (row) => <span className="text-teal-500 font-semibold">${row.amount}</span>,
     },
     { key: "date", label: "Date" },
     {
@@ -22,39 +65,48 @@ function AdminRevenue() {
     },
   ];
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
-
   return (
-    <div>
+    <div className="p-4 sm:p-6 lg:p-8">
       <AdminPageHeader
         title="Revenue and Orders"
-        subtitle="Monitor payment status, course sales, and platform revenue."
+        subtitle="Monitor payment status, course sales, instructor revenue, and platform earnings."
+        action={
+          <button className="px-5 py-2.5 rounded-full bg-teal-400 text-[#061311] font-bold hover:bg-white transition">
+            Export Revenue
+          </button>
+        }
       />
 
-      <section className="grid md:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Total Revenue" value={`$${totalRevenue}`} />
-        <StatCard title="Paid Orders" value="2" />
-        <StatCard title="Pending Orders" value="1" />
-        <StatCard title="Refund Requests" value="0" />
+      <section className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+        <StatCard title="Total Revenue" value={`$${totalRevenue}`} note="+9.4% this month" />
+        <StatCard title="Paid Orders" value="2" note="Completed payments" />
+        <StatCard title="Pending Orders" value="1" note="Need follow-up" />
+        <StatCard title="Refund Requests" value="0" note="No active refund" />
       </section>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-8">
-        <h2 className="text-xl font-bold text-slate-950 mb-5">
-          Monthly Revenue
-        </h2>
+      <section className={`rounded-3xl border backdrop-blur-xl p-6 mb-8 ${chartCardClass}`}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-sm font-semibold text-teal-500">MONTHLY REVENUE</p>
+            <h2 className={`text-2xl font-black mt-2 ${headingClass}`}>
+              Course sales performance
+            </h2>
+          </div>
+        </div>
 
-        <div className="h-64 bg-slate-50 rounded-xl flex items-end gap-4 p-6">
+        <div className={`h-72 rounded-2xl border flex items-end gap-4 p-6 ${chartBg}`}>
           {[40, 60, 80, 55, 90, 75, 100, 65].map((height, index) => (
-            <div
-              key={index}
-              className="flex-1 bg-blue-600 rounded-t-lg"
-              style={{ height: `${height}%` }}
-            ></div>
+            <div key={index} className="flex-1 flex flex-col justify-end">
+              <div
+                className="rounded-t-2xl bg-teal-400 shadow-[0_0_24px_rgba(45,212,191,0.25)] hover:bg-white transition"
+                style={{ height: `${height}%` }}
+              />
+            </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <DataTable columns={columns} data={orders} />
+      <DataTable columns={columns} data={safeOrders} />
     </div>
   );
 }

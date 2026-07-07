@@ -2,66 +2,83 @@ import { Link } from "react-router-dom";
 import { courses } from "../../data/dummyData";
 
 function MyLearning() {
+  const enrolledCourses = courses.slice(0, 6);
+  const progressList = [72, 48, 100, 35, 86, 22];
+
   return (
-    <main className="max-w-7xl mx-auto px-6 py-12">
-      <div className="mb-10">
-        <p className="text-blue-600 font-semibold text-sm">MY LEARNING</p>
-        <h1 className="text-4xl font-bold text-slate-950 mt-2">
-          My Enrolled Courses
-        </h1>
-        <p className="text-slate-500 mt-3">
-          Continue your courses and track your learning progress.
-        </p>
+    <div>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+        <div>
+          <p className="text-sm font-semibold text-teal-500">MY LEARNING</p>
+          <h1 className="text-4xl font-black mt-2 text-[var(--student-heading)]">
+            My Courses
+          </h1>
+          <p className="text-[var(--student-muted)] mt-3">
+            Continue lessons, track progress, and complete your skill roadmap.
+          </p>
+        </div>
+
+        <Link
+          to="/courses"
+          className="px-6 py-3 rounded-full bg-teal-400 text-[#061311] font-bold hover:bg-white transition"
+        >
+          Explore More
+        </Link>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {courses.slice(0, 3).map((course, index) => (
-          <div
-            key={course.id}
-            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
-          >
-            <img
-              src={course.thumbnail}
-              alt={course.title}
-              className="h-44 w-full object-cover"
-            />
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {enrolledCourses.map((course, index) => {
+          const progress = progressList[index] || 50;
 
-            <div className="p-5">
-              <h3 className="font-bold text-lg text-slate-950">
-                {course.title}
-              </h3>
-
-              <p className="text-sm text-slate-500 mt-2">
-                Instructor: {course.instructor}
-              </p>
+          return (
+            <article
+              key={course.id}
+              className="rounded-3xl border border-[var(--student-border)] bg-[var(--student-card)] backdrop-blur-xl p-5 hover:-translate-y-1 hover:border-teal-400/40 transition"
+            >
+              <img
+                src={course.thumbnail}
+                alt={course.title}
+                className="w-full h-44 object-cover rounded-2xl border border-teal-400/20"
+              />
 
               <div className="mt-5">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-slate-600">Progress</span>
-                  <span className="font-semibold">
-                    {[65, 40, 100][index]}%
-                  </span>
+                <span className="text-xs px-3 py-1 rounded-full bg-teal-400/10 text-teal-500 border border-teal-400/20">
+                  {progress === 100 ? "Completed" : "In Progress"}
+                </span>
+
+                <h2 className="text-xl font-bold mt-4 text-[var(--student-heading)]">
+                  {course.title}
+                </h2>
+                <p className="text-sm text-[var(--student-muted)] mt-2">
+                  {course.category}
+                </p>
+
+                <div className="mt-5">
+                  <div className="flex justify-between text-xs text-[var(--student-muted)] mb-2">
+                    <span>Progress</span>
+                    <span>{progress}%</span>
+                  </div>
+
+                  <div className="h-2 rounded-full bg-black/10 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-teal-400"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
 
-                <div className="w-full h-3 bg-slate-200 rounded-full">
-                  <div
-                    className="h-3 bg-blue-600 rounded-full"
-                    style={{ width: `${[65, 40, 100][index]}%` }}
-                  ></div>
-                </div>
+                <Link
+                  to={`/student/learning/${course.id}`}
+                  className="inline-block mt-5 px-4 py-2 rounded-xl bg-teal-400 text-[#061311] text-sm font-bold hover:bg-white transition"
+                >
+                  {progress === 100 ? "Review Course" : "Continue"}
+                </Link>
               </div>
-
-              <Link
-                to={`/learn/${course.id}`}
-                className="block text-center mt-5 py-3 bg-slate-950 text-white rounded-lg hover:bg-slate-800"
-              >
-                Continue Learning
-              </Link>
-            </div>
-          </div>
-        ))}
+            </article>
+          );
+        })}
       </div>
-    </main>
+    </div>
   );
 }
 

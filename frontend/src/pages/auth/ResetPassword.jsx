@@ -1,17 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 
-function Login() {
+function ResetPassword() {
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: "",
     password: "",
+    confirmPassword: "",
   });
 
+  const [error, setError] = useState("");
+
   const handleChange = (event) => {
+    setError("");
+
     setFormData((prev) => ({
       ...prev,
       [event.target.name]: event.target.value,
@@ -21,87 +23,78 @@ function Login() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const role = formData.email === "admin@lms.com" ? "admin" : "student";
-
-    login({
-      name: role === "admin" ? "Admin User" : "Student User",
-      email: formData.email,
-      role,
-    });
-
-    if (role === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/my-learning");
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
     }
+
+    navigate("/reset-success");
   };
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-14 grid md:grid-cols-2 gap-12 items-center">
       <div className="hidden md:block">
         <img
-          src="https://images.unsplash.com/photo-1513258496099-48168024aec0?w=900"
-          alt="Login"
+          src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=900"
+          alt="Reset Password"
           className="rounded-3xl w-full h-[520px] object-cover shadow-lg"
         />
       </div>
 
       <div className="max-w-md w-full mx-auto">
         <p className="text-sm text-blue-600 font-semibold mb-3">
-          WELCOME BACK
+          RESET PASSWORD
         </p>
 
         <h1 className="text-3xl font-bold text-slate-950">
-          Login to your account
+          Create a new password
         </h1>
 
         <p className="text-slate-500 mt-3 mb-8">
-          Access your enrolled courses, learning progress, and dashboard.
+          Enter your new password and confirm it to complete the password reset
+          process.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
-            name="email"
-            type="email"
-            placeholder="Email Address"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          <input
             name="password"
             type="password"
-            placeholder="Password"
+            placeholder="New Password"
             value={formData.password}
             onChange={handleChange}
             required
             className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
           <button
             type="submit"
             className="w-full py-3 bg-slate-950 text-white rounded-lg hover:bg-slate-800"
           >
-            Login
+            Reset Password
           </button>
         </form>
 
         <p className="text-sm text-slate-600 mt-6">
-          Do not have an account?{" "}
-          <Link to="/signup" className="text-blue-600 font-semibold">
-            Create account
+          Remember your account?{" "}
+          <Link to="/login" className="text-blue-600 font-semibold">
+            Login
           </Link>
         </p>
-
-        <div className="mt-6 p-4 bg-slate-50 rounded-lg text-sm text-slate-600">
-          <p>Student login: any email</p>
-          <p>Admin login: admin@lms.com</p>
-        </div>
       </div>
     </main>
   );
 }
 
-export default Login;
+export default ResetPassword;
