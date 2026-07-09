@@ -55,6 +55,7 @@ import InstructorLayout from "./components/instructor/InstructorLayout";
 
 import InstructorList from "./pages/instructor/InstructorList";
 import InstructorDetails from "./pages/instructor/InstructorDetails";
+import BecomeInstructor from "./pages/instructor/BecomeInstructor";
 
 import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 import InstructorMyCourses from "./pages/instructor/MyCourses";
@@ -236,6 +237,14 @@ function App() {
           </AuthPage>
         }
       />
+
+
+      <Route
+  path="/become-instructor"
+  element={<BecomeInstructor />}
+/>
+
+      
 
       <Route
   path="/courses"
