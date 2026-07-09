@@ -1,12 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 
 function Hero() {
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+  const { user, isLoggedIn } = useAuth();
+
+  const [theme, setTheme] = useState(
+    localStorage.getItem("theme") || "dark"
+  );
   const [joinOpen, setJoinOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const isDark = theme === "dark";
+
+  const isInstructor =
+    user?.role === "instructor" ||
+    user?.roles?.includes?.("instructor");
+
+  const learningLink = isLoggedIn
+  ? "/courses"
+  : "/login";
+
+  const teachingLink = !isLoggedIn
+    ? "/login"
+    : isInstructor
+    ? "/instructor/dashboard"
+    : "/become-instructor";
 
   useEffect(() => {
     const syncTheme = () => {
@@ -46,9 +65,9 @@ function Hero() {
   });
 
   const sectionBg = isDark
-  ? "bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.26),transparent_32%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.20),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(20,184,166,0.16),transparent_34%),linear-gradient(120deg,#061311_0%,#071813_48%,#020807_100%)] text-white"
-  : "bg-[radial-gradient(circle_at_18%_20%,rgba(20,184,166,0.22),transparent_32%),radial-gradient(circle_at_85%_35%,rgba(45,212,191,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.14),transparent_36%),linear-gradient(120deg,#F6F9F8_0%,#EAF7F0_48%,#DDF1E8_100%)] text-[#10241E]";
-  
+    ? "bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.26),transparent_32%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.20),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(20,184,166,0.16),transparent_34%),linear-gradient(120deg,#061311_0%,#071813_48%,#020807_100%)] text-white"
+    : "bg-[radial-gradient(circle_at_18%_20%,rgba(20,184,166,0.22),transparent_32%),radial-gradient(circle_at_85%_35%,rgba(45,212,191,0.20),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.14),transparent_36%),linear-gradient(120deg,#F6F9F8_0%,#EAF7F0_48%,#DDF1E8_100%)] text-[#10241E]";
+
   const curveColor = isDark
     ? "bg-[#08251f]"
     : "bg-[radial-gradient(circle_at_center,rgba(20,184,166,0.10),transparent_42%),linear-gradient(120deg,#F6F9F8_0%,#EAF7F0_48%,#DDF1E8_100%)]";
@@ -139,6 +158,7 @@ function Hero() {
 
               <span className="relative inline-flex items-center gap-2 px-6 sm:px-7 py-3.5 rounded-[14px] bg-gradient-to-r from-teal-300 via-emerald-300 to-teal-500 text-[#061311] font-black transition duration-300 group-hover:from-white group-hover:via-teal-200 group-hover:to-teal-400">
                 Unlock Your Creative Future
+
                 <span className="transition-transform duration-300 group-hover:translate-x-1">
                   →
                 </span>
@@ -154,6 +174,7 @@ function Hero() {
                 }`}
               >
                 <span className="absolute inset-0 rounded-xl bg-red-500/5 animate-pulse" />
+
                 <span className="relative">{formattedTime}</span>
               </div>
 
@@ -166,6 +187,7 @@ function Hero() {
           <div className="mt-9 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-5 max-w-md mx-auto">
             <div className={`rounded-2xl p-3 sm:p-5 border ${statCard}`}>
               <h3 className="text-xl sm:text-2xl font-black">50+</h3>
+
               <p className={`text-[11px] sm:text-xs mt-1 ${muted}`}>
                 Skill Courses
               </p>
@@ -173,6 +195,7 @@ function Hero() {
 
             <div className={`rounded-2xl p-3 sm:p-5 border ${statCard}`}>
               <h3 className="text-xl sm:text-2xl font-black">15+</h3>
+
               <p className={`text-[11px] sm:text-xs mt-1 ${muted}`}>
                 Mentors
               </p>
@@ -180,6 +203,7 @@ function Hero() {
 
             <div className={`rounded-2xl p-3 sm:p-5 border ${statCard}`}>
               <h3 className="text-xl sm:text-2xl font-black">2400+</h3>
+
               <p className={`text-[11px] sm:text-xs mt-1 ${muted}`}>
                 Students
               </p>
@@ -187,8 +211,6 @@ function Hero() {
           </div>
         </div>
       </div>
-
-      
 
       {joinOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-5">
@@ -232,19 +254,35 @@ function Hero() {
 
             <div className="grid sm:grid-cols-2 gap-4 mt-7">
               <Link
-                to="/login"
-                onClick={() => setJoinOpen(false)}
-                className="rounded-2xl bg-gradient-to-r from-teal-300 via-emerald-300 to-teal-500 text-[#061311] p-5 font-black hover:-translate-y-1 hover:shadow-[0_15px_35px_rgba(45,212,191,0.28)] transition-all duration-300"
-              >
-                <span className="block text-2xl mb-3">📚</span>
-                Start Learning
-                <span className="block text-xs font-semibold mt-2 text-[#061311]/70">
-                  Join as learner
-                </span>
-              </Link>
+  to={learningLink}
+  state={
+    !isLoggedIn
+      ? {
+          from: "/courses",
+        }
+      : undefined
+  }
+  onClick={() => setJoinOpen(false)}
+  className="rounded-2xl bg-gradient-to-r from-teal-300 via-emerald-300 to-teal-500 text-[#061311] p-5 font-black hover:-translate-y-1 hover:shadow-[0_15px_35px_rgba(45,212,191,0.28)] transition-all duration-300"
+>
+  <span className="block text-2xl mb-3">📚</span>
+
+  Start Learning
+
+  <span className="block text-xs font-semibold mt-2 text-[#061311]/70">
+    Join as learner
+  </span>
+</Link>
 
               <Link
-                to="/login"
+                to={teachingLink}
+                state={
+                  !isLoggedIn
+                    ? {
+                        from: "/become-instructor",
+                      }
+                    : undefined
+                }
                 onClick={() => setJoinOpen(false)}
                 className={`rounded-2xl border p-5 font-black hover:-translate-y-1 transition-all duration-300 ${
                   isDark
@@ -253,7 +291,9 @@ function Hero() {
                 }`}
               >
                 <span className="block text-2xl mb-3">🎓</span>
+
                 Start Teaching
+
                 <span className={`block text-xs font-semibold mt-2 ${muted}`}>
                   Join as instructor
                 </span>
