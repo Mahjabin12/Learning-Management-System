@@ -4,9 +4,15 @@ import cors from "cors";
 
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import seedUsers from "./utils/seedUsers.js";
+import blogRoutes from "./routes/blogRoutes.js";
 
 dotenv.config();
+const result = dotenv.config();
+
+console.log(result);
+console.log("MONGO_URI =", process.env.MONGO_URI);
 
 const app = express();
 
@@ -28,6 +34,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/blogs", blogRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -49,6 +49,14 @@ function Contact() {
     localStorage.getItem("theme") || "dark"
   );
 
+  const [formData, setFormData] = useState({
+  name: "",
+  email: "",
+  message: "",
+});
+
+const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const handleThemeChange = () => {
       setTheme(localStorage.getItem("theme") || "dark");
@@ -71,6 +79,46 @@ function Contact() {
   }, []);
 
   const isDark = theme === "dark";
+  const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    setLoading(true);
+
+    const response = await fetch("http://localhost:5000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("Message sent successfully!");
+
+      setFormData({
+        name: "",
+        email: "",
+        message: "",
+      });
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    alert("Something went wrong!");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main
@@ -244,46 +292,63 @@ function Contact() {
               Fill out the form below.
             </p>
 
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Full Name"
-                className={`w-full rounded-2xl border px-5 py-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 ${
-                  isDark
-                    ? "border-white/10 bg-black/40 text-white placeholder:text-white/30"
-                    : "border-gray-300 bg-white text-[#061311] placeholder:text-gray-400"
-                }`}
-              />
+       <form className="space-y-4" onSubmit={handleSubmit}>
+  {/* Full Name */}
+  <input
+    type="text"
+    name="name"
+    value={formData.name}
+    onChange={handleChange}
+    placeholder="Full Name"
+    className={`w-full rounded-2xl border px-5 py-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 ${
+      isDark
+        ? "border-white/10 bg-black/40 text-white placeholder:text-white/30"
+        : "border-gray-300 bg-white text-[#061311] placeholder:text-gray-400"
+    }`}
+  />
 
-              <input
-                type="email"
-                placeholder="Email Address"
-                className={`w-full rounded-2xl border px-5 py-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 ${
-                  isDark
-                    ? "border-white/10 bg-black/40 text-white placeholder:text-white/30"
-                    : "border-gray-300 bg-white text-[#061311] placeholder:text-gray-400"
-                }`}
-              />
+  {/* Email */}
+  <input
+    type="email"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    placeholder="Email Address"
+    className={`w-full rounded-2xl border px-5 py-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 ${
+      isDark
+        ? "border-white/10 bg-black/40 text-white placeholder:text-white/30"
+        : "border-gray-300 bg-white text-[#061311] placeholder:text-gray-400"
+    }`}
+  />
 
-              <textarea
-                rows="7"
-                placeholder="Your Message"
-                className={`w-full resize-none rounded-2xl border px-5 py-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 ${
-                  isDark
-                    ? "border-white/10 bg-black/40 text-white placeholder:text-white/30"
-                    : "border-gray-300 bg-white text-[#061311] placeholder:text-gray-400"
-                }`}
-              />
+  {/* Message */}
+  <textarea
+    rows={7}
+    name="message"
+    value={formData.message}
+    onChange={handleChange}
+    placeholder="Your Message"
+    className={`w-full resize-none rounded-2xl border px-5 py-4 text-sm outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 ${
+      isDark
+        ? "border-white/10 bg-black/40 text-white placeholder:text-white/30"
+        : "border-gray-300 bg-white text-[#061311] placeholder:text-gray-400"
+    }`}
+  />
 
-              <button
-                type="button"
-                className="w-full rounded-2xl bg-teal-400 py-4 text-sm font-bold text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-teal-300"
-              >
-                Send Message
-              </button>
-            </div>
-          </div>
-        </div>
+  {/* Button */}
+  <button
+    type="submit"
+    disabled={loading}
+    className="w-full rounded-2xl bg-teal-400 py-4 text-sm font-bold text-black transition-all duration-300 hover:-translate-y-0.5 hover:bg-teal-300 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    {loading ? "Sending..." : "Send Message"}
+  </button>
+</form>
+</div>
+</div>
+
+
+
 
         {/* MAP SECTION */}
         <div className="mt-24">
