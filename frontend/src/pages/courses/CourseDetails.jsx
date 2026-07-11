@@ -1,7 +1,9 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { courses } from "../../data/dummyData";
+import axios from "axios";
 import CourseCard from "../../components/common/CourseCard";
+
+const API_URL = "http://127.0.0.1:5000/api/courses";
 
 function CourseDetails() {
   const { id } = useParams();
@@ -10,6 +12,14 @@ function CourseDetails() {
   const [tab, setTab] = useState("overview");
   const [openSection, setOpenSection] = useState(0);
   const [showScrollButton, setShowScrollButton] = useState(false);
+
+  // ⬇️ backend-driven state (same pattern as CourseList.jsx)
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const [allCourses, setAllCourses] = useState([]); // used for "Related Courses"
+  const [reviews, setReviews] = useState([]); // real reviews for this course
 
   useEffect(() => {
     const handleThemeChange = () => {
@@ -31,21 +41,85 @@ function CourseDetails() {
     };
   }, []);
 
+  // ⬇️ fetch single course whenever the URL id changes
+  useEffect(() => {
+    loadCourse();
+  }, [id]);
+
+  const loadCourse = async () => {
+    try {
+      setLoading(true);
+      setError(false);
+
+      const res = await axios.get(`${API_URL}/${id}`);
+
+      const data = res.data.course || res.data;
+      setCourse(data);
+    } catch (err) {
+      console.error(err);
+      setError(true);
+      setCourse(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ⬇️ fetch all courses once, for the "Related Courses" section
+  useEffect(() => {
+    const loadAllCourses = async () => {
+      try {
+        const res = await axios.get(API_URL);
+        const data = Array.isArray(res.data) ? res.data : res.data.courses || [];
+        setAllCourses(data);
+      } catch (err) {
+        console.error(err);
+        setAllCourses([]);
+      }
+    };
+
+    loadAllCourses();
+  }, []);
+
+  // ⬇️ fetch reviews for this course whenever it loads
+  useEffect(() => {
+    if (!course?._id) return;
+
+    const loadReviews = async () => {
+      try {
+        const res = await axios.get(
+          `http://127.0.0.1:5000/api/reviews/course/${course._id}`
+        );
+        setReviews(res.data.reviews || []);
+      } catch (err) {
+        console.error(err);
+        setReviews([]);
+      }
+    };
+
+    loadReviews();
+  }, [course?._id]);
+
   const isDark = theme === "dark";
 
-  const course =
-    courses.find((item) => String(item.id) === String(id)) || courses[0];
+  // instructor can arrive as a populated object ({ _id, name }) or a plain string —
+  // this handles either case safely
+  const instructorName =
+    course?.instructor && typeof course.instructor === "object"
+      ? course.instructor.name
+      : course?.instructor || "Expert Instructor";
 
-  const price = course.basePrice ?? course.price ?? 0;
-  const isFree = Number(price) === 0;
-  const lessons = course.lessons || [];
+  const price = Number(course?.basePrice ?? course?.price ?? 0);
+  const isFree = price === 0;
+  const lessons = course?.lessons || [];
   const totalLessons = lessons.length;
 
   const relatedCourses = useMemo(() => {
-    return courses
-      .filter((item) => item.id !== course.id)
+    if (!course) return [];
+
+    return allCourses
+      .filter((item) => item._id !== course._id && item.category === course.category)
       .slice(0, 4);
-  }, [course.id]);
+  }, [allCourses, course]);
 
   const tabs = ["overview", "curriculum", "instructor", "reviews"];
 
@@ -65,7 +139,21 @@ function CourseDetails() {
 
   const titleClass = isDark ? "text-white" : "text-[#061311]";
 
-  if (!course) {
+  // ⬇️ loading state
+  if (loading) {
+    return (
+      <div
+        className={`min-h-screen flex items-center justify-center text-2xl font-bold ${
+          isDark ? "text-teal-400" : "text-teal-600"
+        }`}
+      >
+        Loading Course...
+      </div>
+    );
+  }
+
+  // ⬇️ error / not-found state
+  if (error || !course) {
     return (
       <main
         className={`min-h-screen flex items-center justify-center px-6 ${pageClass}`}
@@ -173,7 +261,7 @@ function CourseDetails() {
               <InfoStat label="Students" value={`👥 ${course.students || 0}+`} isDark={isDark} />
               <InfoStat label="Lessons" value={`📚 ${totalLessons}`} isDark={isDark} />
               <InfoStat label="Duration" value={`⏱ ${course.duration || "6 Weeks"}`} isDark={isDark} />
-              <InfoStat label="Instructor" value={`🎓 ${course.instructor || "Expert"}`} isDark={isDark} />
+              <InfoStat label="Instructor" value={`🎓 ${instructorName}`} isDark={isDark} />
             </div>
           </div>
 
@@ -183,8 +271,13 @@ function CourseDetails() {
             >
               <div className="relative">
                 <img
-                  src={course.thumbnail}
+                  src={course.image || course.thumbnail}
                   alt={course.title}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src =
+                      "https://placehold.co/600x400/0f2b26/2dd4bf?text=Course+Image";
+                  }}
                   className="w-full h-56 sm:h-64 lg:h-52 object-cover"
                 />
 
@@ -232,7 +325,7 @@ function CourseDetails() {
                 </Link>
 
                 <Link
-                  to={`/student/learning/${course.id}`}
+                  to={`/student/learning/${course._id}`}
                   className={`block text-center mt-3 py-3 rounded-xl font-black border transition-all duration-300 ${
                     isDark
                       ? "border-teal-300/30 text-teal-300 hover:bg-teal-400 hover:text-[#061311]"
@@ -407,11 +500,11 @@ function CourseDetails() {
 
               <div>
                 <h3 className={`text-xl font-black ${titleClass}`}>
-                  {course.instructor || "Expert Instructor"}
+                  {instructorName}
                 </h3>
 
                 <p className={`mt-2 leading-7 ${mutedText}`}>
-                  {course.instructor || "The instructor"} is an experienced
+                  {instructorName} is an experienced
                   mentor in {course.category}. This course is designed with
                   practical lessons, clear explanations, and structured learning
                   modules for Skillora learners.
@@ -430,19 +523,28 @@ function CourseDetails() {
             </h2>
 
             <div className="grid md:grid-cols-3 gap-5 mt-6">
-              {["Very helpful course", "Easy to understand", "Great instructor"].map(
-                (review, index) => (
+              {reviews.length > 0 ? (
+                reviews.map((review) => (
                   <div
-                    key={review}
+                    key={review._id}
                     className={`rounded-2xl p-5 border transition-all duration-300 hover:-translate-y-2 hover:border-teal-300/40 hover:shadow-[0_0_35px_rgba(45,212,191,0.12)] ${softCardClass}`}
                   >
-                    <p className="text-yellow-400">★★★★★</p>
-                    <p className={`mt-3 ${mutedText}`}>{review}</p>
+                    <p className="text-yellow-400">
+                      {"★".repeat(review.rating)}
+                      {"☆".repeat(5 - review.rating)}
+                    </p>
+                    <p className={`mt-3 ${mutedText}`}>
+                      {review.comment || "No comment provided."}
+                    </p>
                     <p className={`text-sm mt-4 ${mutedText}`}>
-                      Student {index + 1}
+                      {review.student?.name || "Student"}
                     </p>
                   </div>
-                )
+                ))
+              ) : (
+                <p className={`col-span-full text-sm ${mutedText}`}>
+                  No reviews yet for this course.
+                </p>
               )}
             </div>
           </div>
@@ -455,14 +557,20 @@ function CourseDetails() {
         </h2>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {relatedCourses.map((item) => (
-            <div
-              key={item.id}
-              className="transition-all duration-300 hover:-translate-y-3 hover:scale-[1.02]"
-            >
-              <CourseCard course={item} />
-            </div>
-          ))}
+          {relatedCourses.length > 0 ? (
+            relatedCourses.map((item) => (
+              <div
+                key={item._id}
+                className="transition-all duration-300 hover:-translate-y-3 hover:scale-[1.02]"
+              >
+                <CourseCard course={item} />
+              </div>
+            ))
+          ) : (
+            <p className={`col-span-full text-sm ${mutedText}`}>
+              No related courses found.
+            </p>
+          )}
         </div>
       </section>
 

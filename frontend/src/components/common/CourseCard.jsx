@@ -31,8 +31,13 @@ function CourseCard({ course }) {
       }`}
     >
       <img
-        src={course.thumbnail}
+        src={course.image || course.thumbnail}
         alt={course.title}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src =
+            "https://placehold.co/600x400/0f2b26/2dd4bf?text=Course+Image";
+        }}
         className="w-full h-44 object-cover"
       />
 
@@ -61,11 +66,11 @@ function CourseCard({ course }) {
           <span className="text-yellow-500">★★★★★</span>
 
           <span className={isDark ? "text-white/70" : "text-slate-600"}>
-            {course.rating}
+            {course.rating || 4.8}
           </span>
 
           <span className={isDark ? "text-white/40" : "text-slate-400"}>
-            ({course.students})
+            ({course.students || 0})
           </span>
         </div>
 
@@ -79,17 +84,19 @@ function CourseCard({ course }) {
               ${course.price}
             </span>
 
-            <span
-              className={`text-sm line-through ml-2 ${
-                isDark ? "text-white/35" : "text-slate-400"
-              }`}
-            >
-              ${course.oldPrice}
-            </span>
+            {course.oldPrice && (
+              <span
+                className={`text-sm line-through ml-2 ${
+                  isDark ? "text-white/35" : "text-slate-400"
+                }`}
+              >
+                ${course.oldPrice}
+              </span>
+            )}
           </div>
 
           <Link
-            to={`/courses/${course.id}`}
+            to={`/courses/${course._id}`}
             className="text-sm font-semibold text-teal-500 hover:text-teal-400 transition"
           >
             View →
