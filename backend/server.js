@@ -5,7 +5,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import seedUsers from "./utils/seedUsers.js";
-
+import studentRoutes from "./routes/studentRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -28,6 +28,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use(
+    "/api/student",
+    studentRoutes
+);
+
 
 const PORT = process.env.PORT || 5000;
 

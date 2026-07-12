@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+import {
+    getStudentDashboard
+} from "../../services/studentApi";
+
 function Dashboard() {
   const { user } = useAuth();
 
@@ -43,126 +47,115 @@ function Dashboard() {
     user?.displayName ||
     "Skillora User";
 
-  useEffect(() => {
-    const loadDashboardData = () => {
-      setIsLoading(true);
+  
+const loadDashboardData = async () => {
 
-      try {
-        const savedEnrollments = localStorage.getItem(
-          enrollmentStorageKey
-        );
+  try {
 
-        const parsedEnrollments = savedEnrollments
-          ? JSON.parse(savedEnrollments)
-          : [];
+    setIsLoading(true);
 
-        setEnrollments(
-          Array.isArray(parsedEnrollments)
-            ? parsedEnrollments
-            : []
-        );
+  console.log("API CALL START");
 
-        const savedCertificates = localStorage.getItem(
-          certificateStorageKey
-        );
+const response = await getStudentDashboard();
 
-        const parsedCertificates = savedCertificates
-          ? JSON.parse(savedCertificates)
-          : [];
+console.log("API RESPONSE:", response.data);
 
-        setCertificates(
-          Array.isArray(parsedCertificates)
-            ? parsedCertificates
-            : []
-        );
+    setEnrollments(
+      response.data.enrollments || []
+    );
 
-        const savedLearningHours = Number(
-          localStorage.getItem(learningHoursStorageKey) || 0
-        );
+    setCertificates(
+      response.data.certificates || []
+    );
 
-        const savedStreak = Number(
-          localStorage.getItem(streakStorageKey) || 0
-        );
+    setLearningHours(
+      response.data.learningHours || 0
+    );
 
-        setLearningHours(
-          Number.isFinite(savedLearningHours)
-            ? savedLearningHours
-            : 0
-        );
+    setCurrentStreak(
+      response.data.currentStreak || 0
+    );
 
-        setCurrentStreak(
-          Number.isFinite(savedStreak)
-            ? savedStreak
-            : 0
-        );
-      } catch (error) {
-        console.error(
-          "Could not load dashboard data:",
-          error
-        );
 
-        setEnrollments([]);
-        setCertificates([]);
-        setLearningHours(0);
-        setCurrentStreak(0);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  } catch(error){
 
+    console.log(
+      "Dashboard API Error:",
+      error
+    );
+
+  }
+  finally{
+
+    setIsLoading(false);
+
+  }
+
+};
+
+
+useEffect(() => {
+
+  loadDashboardData();
+
+
+  const handleDashboardUpdate = () => {
     loadDashboardData();
+  };
 
-    const handleDashboardUpdate = () => {
-      loadDashboardData();
-    };
 
-    window.addEventListener(
+  window.addEventListener(
+    "storage",
+    handleDashboardUpdate
+  );
+
+  window.addEventListener(
+    "skillora-enrollment-updated",
+    handleDashboardUpdate
+  );
+
+  window.addEventListener(
+    "skillora-progress-updated",
+    handleDashboardUpdate
+  );
+
+  window.addEventListener(
+    "skillora-certificate-updated",
+    handleDashboardUpdate
+  );
+
+
+  return () => {
+
+    window.removeEventListener(
       "storage",
       handleDashboardUpdate
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       "skillora-enrollment-updated",
       handleDashboardUpdate
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       "skillora-progress-updated",
       handleDashboardUpdate
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       "skillora-certificate-updated",
       handleDashboardUpdate
     );
 
-    return () => {
-      window.removeEventListener(
-        "storage",
-        handleDashboardUpdate
-      );
+  };
 
-      window.removeEventListener(
-        "skillora-enrollment-updated",
-        handleDashboardUpdate
-      );
 
-      window.removeEventListener(
-        "skillora-progress-updated",
-        handleDashboardUpdate
-      );
-
-      window.removeEventListener(
-        "skillora-certificate-updated",
-        handleDashboardUpdate
-      );
-    };
-  }, [
-    enrollmentStorageKey,
-    certificateStorageKey,
-    learningHoursStorageKey,
-    streakStorageKey,
-  ]);
+}, [
+  enrollmentStorageKey,
+  certificateStorageKey,
+  learningHoursStorageKey,
+  streakStorageKey,
+]);
 
   const getCourseId = (item) => {
     return (
