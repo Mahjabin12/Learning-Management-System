@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+
     email: {
       type: String,
       required: true,
@@ -17,42 +18,137 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+
     password: {
       type: String,
       required: true,
       minlength: 6,
     },
 
+
     role: {
       type: String,
-      enum: ["student", "instructor", "admin"],
+      enum: [
+        "student",
+        "instructor",
+        "admin"
+      ],
       default: "student",
     },
 
-    status: {
-      type: String,
-      enum: ["active", "inactive", "blocked"],
-      default: "active",
+
+    status:{
+ type:String,
+ enum:[
+  "active",
+  "inactive"
+ ],
+ default:"inactive",
+},
+
+
+    // =========================
+    // COURSE PURCHASE TRACKING
+    // =========================
+
+    hasPurchasedCourse: {
+      type: Boolean,
+      default: false,
     },
+
+
+
+    // =========================
+    // INSTRUCTOR MANAGEMENT
+    // =========================
+
+    instructorStatus: {
+      type: String,
+      enum:[
+        "pending",
+        "approved",
+        "rejected",
+        null
+      ],
+      default:null,
+    },
+
+
+
+    // =========================
+    // PASSWORD RESET
+    // =========================
+
+    resetPasswordCode: {
+      type: String,
+      default: null,
+    },
+
+
+    resetPasswordExpire: {
+      type: Date,
+      default: null,
+    },
+
+
   },
+
   {
-    timestamps: true,
+    timestamps:true,
+  }
+
+);
+
+
+
+
+// PASSWORD HASH
+
+userSchema.pre(
+  "save",
+  async function(){
+
+    if(!this.isModified("password")){
+      return;
+    }
+
+
+    const salt =
+      await bcrypt.genSalt(10);
+
+
+    this.password =
+      await bcrypt.hash(
+        this.password,
+        salt
+      );
+
   }
 );
 
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
-    return;
-  }
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return bcrypt.compare(enteredPassword, this.password);
+
+
+// PASSWORD MATCH
+
+userSchema.methods.matchPassword =
+async function(enteredPassword){
+
+  return bcrypt.compare(
+    enteredPassword,
+    this.password
+  );
+
 };
 
-const User = mongoose.model("User", userSchema);
+
+
+const User =
+mongoose.model(
+  "User",
+  userSchema
+);
+
 
 export default User;

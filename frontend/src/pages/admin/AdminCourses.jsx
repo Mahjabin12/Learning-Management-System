@@ -1,19 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import DataTable from "../../components/admin/DataTable";
 import StatusBadge from "../../components/admin/StatusBadge";
-import { courses } from "../../data/dummyData";
+import { getCourses, getCategories } from "../../services/adminApi";
 
 function useAdminTheme() {
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "dark"
+  );
 
   useEffect(() => {
-    const syncTheme = () => {
+    const syncTheme = () =>
       setTheme(localStorage.getItem("theme") || "dark");
-    };
-
-    syncTheme();
 
     window.addEventListener("themechange", syncTheme);
     window.addEventListener("storage", syncTheme);
@@ -27,40 +25,201 @@ function useAdminTheme() {
   return theme;
 }
 
+function FilterDropdown({ value, options, onChange, isDark }) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const closeDropdown = (event) => {
+      if (!dropdownRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeDropdown);
+    return () => document.removeEventListener("mousedown", closeDropdown);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((previous) => !previous)}
+        className={`flex h-12 w-full items-center justify-between rounded-xl
+          border px-4 text-sm font-medium outline-none transition ${
+            isDark
+              ? "border-teal-400/15 bg-[#132824] text-slate-200 hover:border-teal-400/40"
+              : "border-slate-200 bg-white text-slate-700 hover:border-teal-500/50"
+          }`}
+      >
+        <span>{value}</span>
+
+        <svg
+          className={`h-4 w-4 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="m19 9-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className={`absolute left-0 top-full z-50 mt-2 max-h-60 w-full
+            overflow-y-auto rounded-xl border p-1 shadow-2xl ${
+              isDark
+                ? "border-teal-400/20 bg-[#0d201c]"
+                : "border-slate-200 bg-white"
+            }`}
+        >
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                onChange(option);
+                setOpen(false);
+              }}
+              className={`w-full rounded-lg px-3 py-2.5 text-left text-sm
+                transition ${
+                  value === option
+                    ? "bg-teal-400 font-semibold text-[#061311]"
+                    : isDark
+                      ? "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                      : "text-slate-700 hover:bg-teal-50"
+                }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminCourses() {
-  const theme = useAdminTheme();
-  const isDark = theme === "dark";
+  const isDark = useAdminTheme() === "dark";
 
-  const headingClass = isDark ? "text-white" : "text-[#061311]";
-  const mutedClass = isDark ? "text-slate-400" : "text-slate-600";
+  const [courses, setCourses] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categories,setCategories]=useState([]);
 
-  const filterCardClass = isDark
-    ? "bg-white/[0.06] border-teal-400/15 shadow-[0_22px_60px_rgba(0,0,0,0.25)]"
-    : "bg-white/80 border-emerald-900/10 shadow-[0_18px_45px_rgba(6,19,17,0.08)]";
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All Categories");
 
-  const inputClass = isDark
-    ? "bg-white/5 border-teal-400/10 text-white placeholder:text-slate-500 focus:border-teal-400/50 focus:ring-teal-400/15"
-    : "bg-white/80 border-emerald-900/10 text-[#061311] placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/15";
+  const headingClass = isDark ? "text-white" : "text-[#071713]";
+  const mutedClass = isDark ? "text-slate-400" : "text-slate-500";
+
+const loadCourses = async () => {
+
+try{
+
+const courseRes = await getCourses();
+
+const categoryRes = await getCategories();
+
+
+setCourses(
+courseRes.data.courses || []
+);
+
+
+setCategories(
+categoryRes.data.categories || []
+);
+
+
+}
+catch(error){
+
+console.log(
+"Courses load error",
+error
+);
+
+}
+
+finally{
+setLoading(false);
+}
+
+};
+
+  const loadCategories = async () => {
+    try {
+      const res = await getCategories();
+      setCategoryList(res.data.categories || []);
+    } catch (error) {
+      console.log("Categories load error", error);
+    }
+  };
+
+  useEffect(() => {
+    loadCourses();
+    loadCategories();
+  }, []);
+
+  const categoryOptions = useMemo(
+()=>[
+"All Categories",
+...categories.map(
+(item)=>item.name
+)
+],
+[categories]
+);
+
+  const filteredCourses = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return courses.filter((course) => {
+      const matchesSearch =
+        !query ||
+        course.title?.toLowerCase().includes(query) ||
+        course.instructor?.toLowerCase().includes(query);
+
+      const matchesCategory =
+        category === "All Categories" || course.category === category;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [search, category, courses]);
+
+  const totalLearners = courses.reduce(
+    (total, course) => total + Number(course.students || 0),
+    0
+  );
 
   const columns = [
     {
       key: "title",
       label: "Course",
       render: (row) => (
-        <div className="flex items-center gap-3 min-w-[260px]">
-          <div className="relative">
+        <div className="flex min-w-[270px] items-center gap-3">
+          <div className="relative shrink-0">
             <img
               src={row.thumbnail}
               alt={row.title}
-              className="w-16 h-12 object-cover rounded-xl border border-teal-400/20"
+              className="h-12 w-16 rounded-lg border border-teal-400/15 object-cover"
             />
-
-            <div className="absolute -right-1 -bottom-1 w-4 h-4 rounded-full bg-teal-400 shadow-[0_0_16px_rgba(45,212,191,0.6)]" />
+            <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-teal-400 ring-2 ring-[#10231f]" />
           </div>
 
           <div>
-            <p className={`font-semibold ${headingClass}`}>{row.title}</p>
-            <p className={`text-xs mt-1 ${mutedClass}`}>{row.category}</p>
+            <p className={`text-sm font-semibold ${headingClass}`}>
+              {row.title}
+            </p>
+            <p className={`mt-1 text-xs ${mutedClass}`}>{row.category}</p>
           </div>
         </div>
       ),
@@ -69,149 +228,154 @@ function AdminCourses() {
       key: "instructor",
       label: "Instructor",
       render: (row) => (
-        <span className={mutedClass}>{row.instructor}</span>
+        <span className={`text-sm ${mutedClass}`}>{row.instructor}</span>
       ),
     },
     {
       key: "price",
       label: "Price",
       render: (row) => (
-        <span className="font-semibold text-teal-500">${row.price}</span>
+        <span className="text-sm font-semibold text-teal-400">
+          ${row.price}
+        </span>
       ),
     },
     {
       key: "students",
       label: "Students",
       render: (row) => (
-        <span className={mutedClass}>{row.students}+ learners</span>
+        <span className={`text-sm ${mutedClass}`}>
+          {Number(row.students || 0).toLocaleString()} learners
+        </span>
       ),
     },
     {
       key: "status",
       label: "Status",
-      render: (row) => <StatusBadge status={row.status || "Published"} />,
+      render: (row) => <StatusBadge status={row.status || "Draft"} />,
     },
     {
-      key: "approval",
-      label: "Approval",
+      key: "publishedAt",
+      label: "Published On",
       render: (row) => (
-        <StatusBadge status={row.approvalStatus || row.status || "Approved"} />
+        <span className={`text-sm ${mutedClass}`}>
+          {row.publishedAt
+            ? new Date(row.publishedAt).toLocaleString()
+            : "—"}
+        </span>
       ),
     },
     {
       key: "action",
       label: "Action",
       render: (row) => (
-        <div className="flex flex-wrap gap-2 min-w-[180px]">
+        <div className="flex min-w-[100px] flex-wrap gap-2">
           <Link
-            to={`/admin/courses/edit/${row.id}`}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-400 text-[#061311] hover:bg-white transition"
+            to={`/admin/courses/${row.id}`}
+            className="rounded-lg bg-teal-400 px-3 py-2 text-xs font-bold
+              text-[#061311] transition hover:bg-teal-300"
           >
-            Edit
+            View
           </Link>
-
-          <button
-            type="button"
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-              isDark
-                ? "border-teal-400/25 text-teal-300 hover:bg-teal-400/10"
-                : "border-emerald-900/10 text-emerald-700 hover:bg-emerald-50"
-            }`}
-          >
-            Review
-          </button>
-
-          <button
-            type="button"
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-400/20 hover:bg-red-500/20 transition"
-          >
-            Delete
-          </button>
         </div>
       ),
     },
   ];
 
+  const stats = [
+    {
+      label: "Total Courses",
+      value: courses.length,
+      highlight: true,
+    },
+    {
+      label: "Published",
+      value: courses.filter((course) => course.status === "Published").length,
+    },
+    {
+      label: "Categories",
+      value: categoryList.length,
+    },
+    {
+      label: "Total Learners",
+      value: `${totalLearners.toLocaleString()}+`,
+    },
+  ];
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <AdminPageHeader
-        title="Manage Courses"
-        subtitle="Add, edit, review, approve, publish, unpublish, and remove courses across the Byway LMS."
-        action={
-          <Link
-            to="/admin/courses/add"
-            className="inline-flex px-5 py-2.5 rounded-full bg-teal-400 text-[#061311] font-bold hover:bg-white transition shadow-[0_12px_30px_rgba(20,184,166,0.25)]"
+      <div className="mb-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-teal-400">
+            Admin Panel
+          </p>
+
+          <h1
+            className={`text-3xl font-black tracking-tight sm:text-4xl ${headingClass}`}
           >
-            Add Course
-          </Link>
-        }
-      />
+            Manage Courses
+          </h1>
+
+          <p className={`mt-2 max-w-2xl text-sm leading-6 ${mutedClass}`}>
+            View courses published by instructors across the Skillora LMS.
+          </p>
+        </div>
+      </div>
 
       <section
-        className={`rounded-3xl border backdrop-blur-xl p-5 mb-8 transition duration-300 ${filterCardClass}`}
+        className={`relative z-20 mb-7 rounded-2xl border p-4 sm:p-5 ${
+          isDark
+            ? "border-teal-400/15 bg-white/[0.055]"
+            : "border-slate-200 bg-white shadow-sm"
+        }`}
       >
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid gap-3 md:grid-cols-3">
           <input
-            type="text"
-            placeholder="Search course"
-            className={`md:col-span-2 border rounded-2xl px-4 py-3 outline-none focus:ring-2 transition ${inputClass}`}
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by course or instructor"
+            className={`h-12 rounded-xl border px-4 text-sm outline-none
+              transition md:col-span-2 ${
+                isDark
+                  ? "border-teal-400/15 bg-[#132824] text-white placeholder:text-slate-500 focus:border-teal-400/50"
+                  : "border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-teal-500"
+              }`}
           />
 
-          <select
-            className={`border rounded-2xl px-4 py-3 outline-none focus:ring-2 transition ${inputClass}`}
-          >
-            <option>All Categories</option>
-            <option>Figma Design</option>
-            <option>Canva Design</option>
-            <option>UI/UX Design</option>
-            <option>Digital Marketing</option>
-          </select>
-
-          <select
-            className={`border rounded-2xl px-4 py-3 outline-none focus:ring-2 transition ${inputClass}`}
-          >
-            <option>All Status</option>
-            <option>Published</option>
-            <option>Pending</option>
-            <option>Draft</option>
-            <option>Rejected</option>
-          </select>
+          <FilterDropdown
+            value={category}
+            options={categories}
+            onChange={setCategory}
+            isDark={isDark}
+          />
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Total Courses</p>
-            <h3 className="text-2xl font-black text-teal-500">
-              {courses.length}
-            </h3>
-          </div>
-
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Published</p>
-            <h3 className={`text-2xl font-black ${headingClass}`}>
-              {courses.filter((course) => course.status === "Published").length ||
-                courses.length}
-            </h3>
-          </div>
-
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Pending Review</p>
-            <h3 className={`text-2xl font-black ${headingClass}`}>18</h3>
-          </div>
-
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Total Learners</p>
-            <h3 className={`text-2xl font-black ${headingClass}`}>
-              {courses
-                .reduce((total, course) => total + Number(course.students || 0), 0)
-                .toLocaleString()}
-              +
-            </h3>
-          </div>
+        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-teal-400/10 pt-5 lg:grid-cols-4">
+          {stats.map((item) => (
+            <div key={item.label}>
+              <p className={`text-xs font-medium ${mutedClass}`}>
+                {item.label}
+              </p>
+              <p
+                className={`mt-1 text-xl font-black sm:text-2xl ${
+                  item.highlight ? "text-teal-400" : headingClass
+                }`}
+              >
+                {item.value}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
-      <DataTable columns={columns} data={courses} />
+      <div className="relative z-10">
+        {loading ? (
+          <p className={mutedClass}>Loading courses...</p>
+        ) : (
+          <DataTable columns={columns} data={filteredCourses} />
+        )}
+      </div>
     </div>
   );
 }

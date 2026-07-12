@@ -8,6 +8,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { verifyCode } from "../../services/authApi";
+
+
 function VerifyCode() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -98,20 +101,57 @@ function VerifyCode() {
     inputRefs.current[nextIndex]?.focus();
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  
 
-    if (codeValue.length !== 6) {
-      setError("Please enter the complete 6-digit verification code.");
-      return;
-    }
+  const handleSubmit = async(event)=>{
 
-    navigate("/reset-password", {
-      state: {
-        email,
-      },
-    });
-  };
+event.preventDefault();
+
+
+if(codeValue.length !== 6){
+
+ setError(
+ "Please enter the complete 6-digit verification code."
+ );
+
+ return;
+
+}
+
+
+try{
+
+
+await verifyCode({
+
+ email,
+
+ code:codeValue
+
+});
+
+
+navigate("/reset-password",{
+
+state:{
+ email
+}
+
+});
+
+
+}catch(error){
+
+
+setError(
+ error.response?.data?.message ||
+ "Invalid verification code"
+);
+
+}
+};
+
+
 
   return (
     <main

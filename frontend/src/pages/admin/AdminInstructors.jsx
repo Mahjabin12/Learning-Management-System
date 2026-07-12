@@ -1,180 +1,768 @@
 import { useEffect, useState } from "react";
+
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import DataTable from "../../components/admin/DataTable";
 import StatusBadge from "../../components/admin/StatusBadge";
-import { instructors, courses } from "../../data/dummyData";
 
-function useAdminTheme() {
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+import {
+getInstructorApplications,
+getInstructors,
+approveInstructor,
+rejectInstructor,
+deleteUser
+}
+from "../../services/adminApi";
 
-  useEffect(() => {
-    const syncTheme = () => setTheme(localStorage.getItem("theme") || "dark");
 
-    syncTheme();
-    window.addEventListener("themechange", syncTheme);
-    window.addEventListener("storage", syncTheme);
 
-    return () => {
-      window.removeEventListener("themechange", syncTheme);
-      window.removeEventListener("storage", syncTheme);
-    };
-  }, []);
+function useAdminTheme(){
 
-  return theme;
+const [theme,setTheme]=useState(
+localStorage.getItem("theme") || "dark"
+);
+
+
+useEffect(()=>{
+
+const sync=()=>{
+
+setTheme(
+localStorage.getItem("theme") || "dark"
+);
+
+};
+
+
+window.addEventListener(
+"themechange",
+sync
+);
+
+window.addEventListener(
+"storage",
+sync
+);
+
+
+return()=>{
+
+window.removeEventListener(
+"themechange",
+sync
+);
+
+window.removeEventListener(
+"storage",
+sync
+);
+
+};
+
+},[]);
+
+
+return theme;
+
 }
 
-function AdminInstructors() {
-  const theme = useAdminTheme();
-  const isDark = theme === "dark";
 
-  const headingClass = isDark ? "text-white" : "text-[#061311]";
-  const mutedClass = isDark ? "text-slate-400" : "text-slate-600";
 
-  const cardClass = isDark
-    ? "bg-white/[0.06] border-teal-400/15 shadow-[0_22px_60px_rgba(0,0,0,0.25)]"
-    : "bg-white/80 border-emerald-900/10 shadow-[0_18px_45px_rgba(6,19,17,0.08)]";
 
-  const inputClass = isDark
-    ? "bg-white/5 border-teal-400/10 text-white placeholder:text-slate-500 focus:border-teal-400/50 focus:ring-teal-400/15"
-    : "bg-white/80 border-emerald-900/10 text-[#061311] placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/15";
+function AdminInstructors(){
 
-  const safeInstructors = Array.isArray(instructors) ? instructors : [];
 
-  const columns = [
-    {
-      key: "name",
-      label: "Instructor",
-      render: (row) => (
-        <div className="flex items-center gap-3 min-w-[240px]">
-          <img
-            src={row.image}
-            alt={row.name}
-            className="w-12 h-12 rounded-full object-cover border border-teal-400/20"
-          />
+const theme=useAdminTheme();
 
-          <div>
-            <p className={`font-semibold ${headingClass}`}>{row.name}</p>
-            <p className={`text-xs mt-1 ${mutedClass}`}>
-              {row.role || "Instructor"}
-            </p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "specialty",
-      label: "Specialty",
-      render: (row) => (
-        <span className={mutedClass}>{row.specialty || "Creative Skills"}</span>
-      ),
-    },
-    {
-      key: "courses",
-      label: "Courses",
-      render: (row) => {
-        const count = courses.filter(
-          (course) => course.instructor === row.name
-        ).length;
+const isDark=theme==="dark";
 
-        return <span className="text-teal-500 font-semibold">{count}</span>;
-      },
-    },
-    {
-      key: "students",
-      label: "Students",
-      render: (row) => (
-        <span className={mutedClass}>{row.students || 0}+ learners</span>
-      ),
-    },
-    {
-      key: "rating",
-      label: "Rating",
-      render: (row) => (
-        <span className={headingClass}>⭐ {row.rating || "4.8"}</span>
-      ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: () => <StatusBadge status="Active" />,
-    },
-    {
-      key: "action",
-      label: "Action",
-      render: () => (
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-400 text-[#061311] hover:bg-white transition">
-            View
-          </button>
 
-          <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-400/20 hover:bg-red-500/20 transition">
-            Disable
-          </button>
-        </div>
-      ),
-    },
-  ];
+const [applications,setApplications]=useState([]);
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <AdminPageHeader
-        title="Manage Instructors"
-        subtitle="View instructor profiles, track submitted courses, monitor performance, and control instructor access."
-        action={
-          <button className="px-5 py-2.5 rounded-full bg-teal-400 text-[#061311] font-bold hover:bg-white transition">
-            Add Instructor
-          </button>
-        }
-      />
+const [instructors,setInstructors]=useState([]);
 
-      <section className={`rounded-3xl border backdrop-blur-xl p-5 mb-8 ${cardClass}`}>
-        <div className="grid md:grid-cols-4 gap-4">
-          <input
-            type="text"
-            placeholder="Search instructor"
-            className={`md:col-span-2 border rounded-2xl px-4 py-3 outline-none focus:ring-2 transition ${inputClass}`}
-          />
+const [selected,setSelected]=useState(null);
 
-          <select className={`border rounded-2xl px-4 py-3 outline-none focus:ring-2 transition ${inputClass}`}>
-            <option>All Specialties</option>
-            <option>Figma Design</option>
-            <option>Canva Design</option>
-            <option>UI/UX Design</option>
-            <option>Digital Marketing</option>
-          </select>
 
-          <select className={`border rounded-2xl px-4 py-3 outline-none focus:ring-2 transition ${inputClass}`}>
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Inactive</option>
-          </select>
-        </div>
 
-        <div className="grid sm:grid-cols-3 gap-4 mt-5">
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Total Instructors</p>
-            <h3 className={`text-2xl font-black ${headingClass}`}>
-              {safeInstructors.length}
-            </h3>
-          </div>
+const loadData=async()=>{
 
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Pending Course Requests</p>
-            <h3 className="text-2xl font-black text-teal-500">14</h3>
-          </div>
+try{
 
-          <div>
-            <p className={`text-xs ${mutedClass}`}>Active Instructors</p>
-            <h3 className={`text-2xl font-black ${headingClass}`}>
-              {safeInstructors.length}
-            </h3>
-          </div>
-        </div>
-      </section>
 
-      <DataTable columns={columns} data={safeInstructors} />
-    </div>
-  );
+const pending =
+await getInstructorApplications();
+
+
+const approved =
+await getInstructors();
+
+
+
+setApplications(
+pending.data.applications || []
+);
+
+
+
+setInstructors(
+approved.data.users || []
+);
+
+
+
 }
+catch(error){
+
+console.log(
+"INSTRUCTOR LOAD ERROR",
+error
+);
+
+}
+
+};
+
+
+
+
+
+useEffect(()=>{
+
+loadData();
+
+},[]);
+
+
+
+
+
+
+const handleApprove=async(id)=>{
+
+try{
+
+await approveInstructor(id);
+
+setSelected(null);
+
+loadData();
+
+
+}
+catch(error){
+
+console.log(error);
+
+}
+
+};
+
+
+
+
+const handleReject=async(id)=>{
+
+try{
+
+await rejectInstructor(
+id,
+{
+reason:"Application rejected"
+}
+);
+
+
+setSelected(null);
+
+loadData();
+
+
+}
+catch(error){
+
+console.log(error);
+
+}
+
+};
+
+
+
+
+
+
+const headingClass=isDark
+?
+"text-white"
+:
+"text-[#061311]";
+
+
+const mutedClass=isDark
+?
+"text-slate-300"
+:
+"text-slate-600";
+
+
+const cardClass=isDark
+?
+"bg-[#102823] border-[#24564c]"
+:
+"bg-white border-emerald-100";
+
+
+
+
+
+
+
+const tableData=[
+
+...applications.map(item=>({
+
+...item,
+
+type:"Pending"
+
+})),
+
+
+...instructors.map(item=>({
+
+...item,
+
+type:"Instructor"
+
+}))
+
+];
+
+
+
+
+
+
+
+
+const columns=[
+
+
+{
+
+key:"user",
+
+label:"Instructor",
+
+render:(row)=>(
+
+<div>
+
+<p className={`font-semibold ${headingClass}`}>
+
+{
+row.user?.name ||
+row.name
+}
+
+</p>
+
+
+<p className={`text-xs ${mutedClass}`}>
+
+{
+row.user?.email ||
+row.email
+}
+
+</p>
+
+
+</div>
+
+)
+
+},
+
+
+
+
+{
+
+key:"experience",
+
+label:"Experience",
+
+render:(row)=>(
+
+<span className={mutedClass}>
+
+{
+row.yearsOfExperience ||
+0
+}
+
+ years
+
+</span>
+
+)
+
+},
+
+
+
+
+
+{
+
+key:"category",
+
+label:"Category",
+
+render:(row)=>(
+
+<span className="text-teal-400 font-semibold">
+
+{
+row.categories?.join(", ") ||
+"---"
+}
+
+</span>
+
+)
+
+},
+
+
+
+
+
+{
+
+key:"status",
+
+label:"Status",
+
+render:(row)=>(
+
+
+<StatusBadge
+
+status={
+row.dataType==="pending"
+?
+"Pending"
+:
+"Approved"
+}
+
+/>
+
+
+)
+
+},
+
+
+
+
+
+{
+
+key:"action",
+
+label:"Action",
+
+render:(row)=>(
+
+
+<button
+
+onClick={()=>setSelected(row)}
+
+className="
+px-4
+py-2
+rounded-xl
+bg-teal-400
+text-[#061311]
+font-semibold
+text-sm
+"
+
+>
+
+View
+
+</button>
+
+
+)
+
+}
+
+
+
+];
+
+
+
+
+
+
+
+
+
+return(
+
+<div className="p-4 sm:p-6 lg:p-8">
+
+
+
+<AdminPageHeader
+
+title="Manage Instructors"
+
+subtitle="Review instructor applications and manage approved instructors."
+
+/>
+
+
+<section
+className={`rounded-3xl border p-6 mb-8 ${cardClass}`}
+>
+
+<div className="grid sm:grid-cols-3 gap-6">
+
+<div>
+
+<p className={mutedClass}>
+Pending Applications
+</p>
+
+
+<h2 className="
+text-3xl
+font-black
+text-teal-400
+">
+
+{
+applications.length
+}
+
+</h2>
+
+
+</div>
+
+
+
+
+
+<div>
+
+<p className={mutedClass}>
+Approved Instructors
+</p>
+
+
+<h2 className={`text-3xl font-black ${headingClass}`}>
+
+{
+instructors.filter(
+(item)=>item.role==="instructor"
+).length
+}
+
+</h2>
+
+
+</div>
+
+
+
+
+
+<div>
+
+<p className={mutedClass}>
+Total Requests
+</p>
+
+
+<h2 className={`text-3xl font-black ${headingClass}`}>
+
+{
+applications.length + instructors.length
+}
+
+</h2>
+
+
+</div>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+<DataTable
+columns={columns}
+data={[
+...applications.map(item=>({
+...item,
+dataType:"pending"
+})),
+
+...instructors.map(item=>({
+...item,
+dataType:"approved"
+}))
+]}
+/>
+
+
+
+
+
+
+
+
+{
+selected &&
+
+
+<div
+className="
+fixed
+inset-0
+z-50
+flex
+items-center
+justify-center
+bg-black/60
+px-4
+"
+>
+
+
+<div
+className={`w-full max-w-3xl rounded-3xl border p-6 ${cardClass}`}
+>
+
+
+<h2 className={`text-2xl font-bold ${headingClass}`}>
+
+Instructor Details
+
+</h2>
+
+
+
+
+<div className="mt-5 space-y-3 text-sm">
+
+
+<p>
+<b>Name:</b>
+
+{
+selected.user?.name ||
+selected.name
+}
+
+</p>
+
+
+
+<p>
+<b>Email:</b>
+
+{
+selected.user?.email ||
+selected.email
+}
+
+</p>
+
+
+
+<p>
+<b>Status:</b>
+
+{
+selected.dataType==="pending"
+?
+"Pending Application"
+:
+"Approved Instructor"
+}
+
+</p>
+
+
+
+<p>
+<b>Experience:</b>{" "}
+{
+selected.yearsOfExperience
+?
+`${selected.yearsOfExperience} years`
+:
+"N/A"
+}
+</p>
+
+
+<p>
+<b>Skills:</b>
+
+{
+selected.skills || "---"
+}
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+{
+selected.dataType==="pending" &&
+
+<div className="flex gap-3 mt-6">
+
+
+<button
+
+onClick={()=>handleApprove(selected._id)}
+
+className="
+px-5
+py-2
+rounded-xl
+bg-teal-400
+font-bold
+"
+
+>
+
+Approve
+
+</button>
+
+
+
+<button
+
+onClick={()=>handleReject(selected._id)}
+
+className="
+px-5
+py-2
+rounded-xl
+bg-red-500/20
+text-red-400
+"
+
+>
+
+Reject
+
+</button>
+
+
+</div>
+
+}
+
+
+{
+selected.dataType==="approved" &&
+
+<button
+
+onClick={async()=>{
+
+await deleteUser(selected._id);
+
+setSelected(null);
+
+loadData();
+
+}}
+
+className="
+px-5
+py-2
+rounded-xl
+bg-red-500/20
+text-red-400
+font-bold
+"
+
+>
+
+Remove Instructor
+
+</button>
+
+}
+
+
+
+<button
+
+onClick={()=>setSelected(null)}
+
+className="
+mt-5
+px-5
+py-2
+rounded-xl
+border
+"
+
+>
+
+Close
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+}
+
+
+
+
+
+</div>
+
+
+);
+
+
+}
+
 
 export default AdminInstructors;

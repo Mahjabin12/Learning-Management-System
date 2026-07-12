@@ -90,6 +90,15 @@ import AdminAnnouncements from "./pages/admin/AdminAnnouncements";
 import AdminActivityLogs from "./pages/admin/AdminActivityLogs";
 import AdminSettings from "./pages/admin/AdminSettings";
 
+
+import AdminBlog from "./pages/admin/AdminBlog";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminCertificates from "./pages/admin/AdminCertificates";
+import AdminContactRequests from "./pages/admin/AdminContactRequests";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminReviews from "./pages/admin/AdminReviews";
+
+
 function PublicPage({ children }) {
   return (
     <>
@@ -648,7 +657,7 @@ function App() {
         path="/admin/activity-logs"
         element={
           <AdminPage>
-            <AdminActivityLogs />
+            <AdminActivityLogs /> 
           </AdminPage>
         }
       />
@@ -661,6 +670,69 @@ function App() {
           </AdminPage>
         }
       />
+
+      <Route
+  path="/admin/blog"
+  element={
+    <AdminPage>
+      <AdminBlog />
+    </AdminPage>
+  }
+/>
+
+
+<Route
+  path="/admin/categories"
+  element={
+    <AdminPage>
+      <AdminCategories />
+    </AdminPage>
+  }
+/>
+
+
+<Route
+  path="/admin/certificates"
+  element={
+    <AdminPage>
+      <AdminCertificates />
+    </AdminPage>
+  }
+/>
+
+
+<Route
+  path="/admin/contact-requests"
+  element={
+    <AdminPage>
+      <AdminContactRequests />
+    </AdminPage>
+  }
+/>
+
+
+<Route
+  path="/admin/payments"
+  element={
+    <AdminPage>
+      <AdminPayments />
+    </AdminPage>
+  }
+/>
+
+
+<Route
+  path="/admin/reviews"
+  element={
+    <AdminPage>
+      <AdminReviews />
+    </AdminPage>
+  }
+/>
+
+
+
+
 
       {/* 404 */}
       <Route path="*" element={<NotFound />} />

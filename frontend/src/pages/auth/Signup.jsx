@@ -18,12 +18,15 @@ import {
   FaXTwitter,
 } from "react-icons/fa6";
 
+import { registerUser } from "../../services/authApi";
+
 function Signup() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
 
   const [formData, setFormData] = useState({
@@ -88,43 +91,98 @@ function Signup() {
     }));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    const name = formData.name.trim();
-    const email = formData.email.trim().toLowerCase();
-    const password = formData.password;
-    const confirmPassword = formData.confirmPassword;
+  const name = formData.name.trim();
+  const email = formData.email.trim().toLowerCase();
+  const password = formData.password;
+  const confirmPassword = formData.confirmPassword;
 
-    const newErrors = {
-      password: "",
-      confirmPassword: "",
-    };
 
-    let hasError = false;
+  const newErrors = {
+    password: "",
+    confirmPassword: "",
+  };
 
-    if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
-      hasError = true;
-    }
 
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match.";
-      hasError = true;
-    }
+  let hasError = false;
 
-    setErrors(newErrors);
 
-    if (hasError) return;
+  if (password.length < 8) {
+    newErrors.password =
+      "Password must be at least 8 characters.";
 
-    login({
+    hasError = true;
+  }
+
+
+  if (password !== confirmPassword) {
+    newErrors.confirmPassword =
+      "Passwords do not match.";
+
+    hasError = true;
+  }
+
+
+  setErrors(newErrors);
+
+
+  if (hasError) return;
+
+
+
+  try {
+
+    setLoading(true);
+
+
+    const response = await registerUser({
       name,
       email,
-      role: "student",
+      password,
     });
 
-    navigate("/my-learning");
-  };
+
+
+    const {
+      token,
+      user,
+    } = response.data;
+
+
+
+    login(user, token);
+
+
+
+    navigate("/student/my-learning");
+
+
+
+  } catch (error) {
+
+
+    console.error(
+      "Signup error:",
+      error.response?.data || error.message
+    );
+
+
+    alert(
+      error.response?.data?.message ||
+      "Registration failed"
+    );
+
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+
+
 
   return (
     <main
@@ -498,7 +556,7 @@ function Signup() {
                       : "bg-[#061311] text-white shadow-[0_18px_40px_rgba(6,19,17,0.18)] hover:bg-emerald-700"
                   }`}
                 >
-                  Sign Up
+                  {loading ? "Creating Account..." : "Sign Up"}
                 </button>
               </form>
 

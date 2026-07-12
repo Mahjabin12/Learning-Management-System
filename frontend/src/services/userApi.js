@@ -1,4 +1,26 @@
 import api from "./api";
 
-export const getUsers = () => api.get("/users");
-export const getUserById = (id) => api.get(`/users/${id}`);
+
+// Current user profile
+
+export const getMyProfile = () => {
+  return api.get("/users/profile");
+};
+
+
+
+export const updateMyProfile = (data) => {
+  return api.patch(
+    "/users/profile",
+    data
+  );
+};
+
+
+
+export const changePassword = (data) => {
+  return api.patch(
+    "/users/change-password",
+    data
+  );
+};

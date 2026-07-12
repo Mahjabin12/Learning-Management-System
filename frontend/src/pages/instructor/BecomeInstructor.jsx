@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
+import { applyInstructor } from "../../services/instructorApi";
 const STEPS = [
   {
     id: 1,
@@ -545,23 +545,92 @@ function BecomeInstructor() {
     return true;
   };
 
-  const handleSubmitApplication = () => {
-    if (!validateEntireApplication()) return;
+  const handleSubmitApplication = async()=>{
 
-    const newSubmittedAt = new Date().toISOString();
 
-    setApplicationStatus("pending");
-    setSubmittedAt(newSubmittedAt);
+if(!validateEntireApplication()) return;
 
-    saveApplication({
-      status: "pending",
-      step: 5,
-      newSubmittedAt,
-    });
 
-    setMessage("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+try{
+
+
+const response =
+await applyInstructor(formData);
+
+
+
+console.log(
+"APPLICATION RESPONSE:",
+response.data
+);
+
+
+
+const newSubmittedAt =
+new Date().toISOString();
+
+
+
+setApplicationStatus(
+"pending"
+);
+
+
+setSubmittedAt(
+newSubmittedAt
+);
+
+
+
+saveApplication({
+
+status:"pending",
+
+step:5,
+
+newSubmittedAt,
+
+});
+
+
+
+setMessage(
+"Application submitted successfully"
+);
+
+
+window.scrollTo({
+
+top:0,
+
+behavior:"smooth"
+
+});
+
+
+
+}
+catch(error){
+
+
+console.log(
+"APPLY ERROR:",
+error
+);
+
+
+setFeedbackMessage(
+
+error.response?.data?.message ||
+"Application submission failed"
+
+);
+
+
+}
+
+
+};
 
   const handleEditRejectedApplication = () => {
     setApplicationStatus("draft");

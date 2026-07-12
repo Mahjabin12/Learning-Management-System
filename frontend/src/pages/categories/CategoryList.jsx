@@ -1,35 +1,45 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { categories } from "../../data/dummyData";
+import {getCategories} from "../../services/categoryApi";
 
 function CategoryList() {
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") || "dark"
   );
 
+  const [categories,setCategories]=useState([]);
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const handleTheme = () => {
-      setTheme(localStorage.getItem("theme") || "dark");
-    };
+ useEffect(()=>{
+  const fetchCategories = async()=>{
 
-    window.addEventListener("themechange", handleTheme);
-    window.addEventListener("storage", handleTheme);
-
-    return () => {
-      window.removeEventListener("themechange", handleTheme);
-      window.removeEventListener("storage", handleTheme);
-    };
-  }, []);
+  try{
+    const res =
+    await getCategories();
+    setCategories(
+    res.data.categories || []
+    );
+    }
+    catch(error){
+    console.log(
+    "Category fetch error",
+    error
+    );
+    }};
+  fetchCategories();
+  },[]);
 
   const isDark = theme === "dark";
 
-  const allCategories = useMemo(
-    () => ["All", ...categories.map((item) => item.name)],
-    []
-  );
+ const allCategories = useMemo(
+  () => [
+    "All",
+    ...categories.map((item)=>item.name)
+  ],
+  [categories]
+);
 
   const filteredCategories = categories.filter((item) => {
     const matchCategory =
@@ -202,8 +212,8 @@ function CategoryList() {
         <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredCategories.map((category) => (
             <Link
-              key={category.id}
-              to={`/categories/${category.id}`}
+              key={category._id}
+              to={`/categories/${category._id}`}
               className={`group relative overflow-hidden rounded-3xl border p-7 transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl ${cardClass}`}
             >
               {/* Background Glow */}
@@ -227,7 +237,7 @@ function CategoryList() {
 
               {/* Description */}
               <p className={`relative z-10 mt-4 text-sm leading-7 ${mutedText}`}>
-                {category.text ||
+                {category.description ||
                   "Learn professional skills with practical projects, real-world examples and career-focused courses."}
               </p>
 
