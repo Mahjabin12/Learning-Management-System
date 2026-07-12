@@ -2,37 +2,72 @@ import User from "../models/User.js";
 
 const seedUsers = async () => {
   try {
-    const defaultUsers = [
-      {
-        name: "Admin",
-        email: "admin@lms.com",
-        password: "123456",
+    const adminEmail = (
+      process.env.ADMIN_EMAIL || "admin@lms.com"
+    )
+      .trim()
+      .toLowerCase();
+
+    const adminPassword =
+      process.env.ADMIN_PASSWORD || "123456";
+
+    const adminName =
+      process.env.ADMIN_NAME || "Skillora Admin";
+
+    let admin = await User.findOne({
+      email: adminEmail,
+    });
+
+    if (!admin) {
+      admin = await User.create({
+        name: adminName,
+        email: adminEmail,
+        password: adminPassword,
         role: "admin",
-      },
-      {
-        name: "Instructor",
-        email: "ins@lms.com",
-        password: "123456",
-        role: "instructor",
-      },
-      {
-        name: "Student User",
-        email: "student@lms.com",
-        password: "123456",
-        role: "student",
-      },
-    ];
+        status: "active",
+      });
 
-    for (const userData of defaultUsers) {
-      const existingUser = await User.findOne({ email: userData.email });
+      console.log(
+        `Admin account created: ${admin.email}`
+      );
 
-      if (!existingUser) {
-        await User.create(userData);
-        console.log(`Seeded user: ${userData.email}`);
-      }
+      return;
+    }
+
+    let isUpdated = false;
+
+    if (admin.role !== "admin") {
+      admin.role = "admin";
+      isUpdated = true;
+    }
+
+    if (admin.status !== "active") {
+      admin.status = "active";
+      isUpdated = true;
+    }
+
+    if (admin.name !== adminName) {
+      admin.name = adminName;
+      isUpdated = true;
+    }
+
+    if (isUpdated) {
+      await admin.save();
+
+      console.log(
+        `Admin account updated: ${admin.email}`
+      );
+    } else {
+      console.log(
+        `Admin account already exists: ${admin.email}`
+      );
     }
   } catch (error) {
-    console.error(`Seed user error: ${error.message}`);
+    console.error(
+      `Admin seed error: ${error.message}`
+    );
+
+    throw error;
   }
 };
 

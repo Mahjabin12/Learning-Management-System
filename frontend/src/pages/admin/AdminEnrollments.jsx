@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import DataTable from "../../components/admin/DataTable";
 import StatusBadge from "../../components/admin/StatusBadge";
-import { enrollments } from "../../data/dummyData";
+import { getEnrollments } from "../../services/adminApi";
 
 function useAdminTheme() {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
@@ -27,6 +27,9 @@ function AdminEnrollments() {
   const theme = useAdminTheme();
   const isDark = theme === "dark";
 
+  const [enrollments, setEnrollments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const headingClass = isDark ? "text-white" : "text-[#061311]";
   const mutedClass = isDark ? "text-slate-400" : "text-slate-600";
 
@@ -36,17 +39,38 @@ function AdminEnrollments() {
 
   const safeEnrollments = Array.isArray(enrollments) ? enrollments : [];
 
+  const loadEnrollments = async () => {
+    try {
+      const res = await getEnrollments();
+      setEnrollments(res.data.enrollments || []);
+    } catch (error) {
+      console.log("Enrollment load error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEnrollments();
+  }, []);
+
   const columns = [
     { key: "id", label: "Enrollment ID" },
     {
       key: "student",
       label: "Student",
-      render: (row) => <span className={`font-semibold ${headingClass}`}>{row.student}</span>,
+      render: (row) => (
+        <span className={`font-semibold ${headingClass}`}>
+          {row.student?.name || "N/A"}
+        </span>
+      ),
     },
     {
       key: "course",
       label: "Course",
-      render: (row) => <span className={mutedClass}>{row.course}</span>,
+      render: (row) => (
+        <span className={mutedClass}>{row.course?.title || "N/A"}</span>
+      ),
     },
     {
       key: "progress",
@@ -55,10 +79,10 @@ function AdminEnrollments() {
         <div className="min-w-[160px]">
           <div className="flex justify-between text-xs mb-2">
             <span className={mutedClass}>Progress</span>
-            <span className="text-teal-500 font-semibold">{row.progress}</span>
+            <span className="text-teal-500 font-semibold">{row.progress}%</span>
           </div>
           <div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-slate-200"}`}>
-            <div className="h-full bg-teal-400 rounded-full" style={{ width: row.progress }} />
+            <div className="h-full bg-teal-400 rounded-full" style={{ width: `${row.progress}%` }} />
           </div>
         </div>
       ),
@@ -66,7 +90,11 @@ function AdminEnrollments() {
     {
       key: "date",
       label: "Date",
-      render: (row) => <span className={mutedClass}>{row.date}</span>,
+      render: (row) => (
+        <span className={mutedClass}>
+          {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A"}
+        </span>
+      ),
     },
     {
       key: "status",
@@ -102,12 +130,18 @@ function AdminEnrollments() {
           </div>
           <div>
             <p className={`text-xs ${mutedClass}`}>Certificate Pending</p>
-            <h3 className={`text-2xl font-black ${headingClass}`}>7</h3>
+            <h3 className={`text-2xl font-black ${headingClass}`}>
+              {safeEnrollments.filter((item) => item.certificateIssued).length}
+            </h3>
           </div>
         </div>
       </section>
 
-      <DataTable columns={columns} data={safeEnrollments} />
+      {loading ? (
+        <p className={mutedClass}>Loading enrollments...</p>
+      ) : (
+        <DataTable columns={columns} data={safeEnrollments} />
+      )}
     </div>
   );
 }

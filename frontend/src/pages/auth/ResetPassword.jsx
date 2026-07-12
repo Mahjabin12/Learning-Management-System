@@ -11,8 +11,15 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+import { resetPassword } from "../../services/authApi";
+import { useLocation } from "react-router-dom";
+
 function ResetPassword() {
   const navigate = useNavigate();
+
+  const location = useLocation();
+
+  const email = location.state?.email;
 
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
   const [showPassword, setShowPassword] = useState(false);
@@ -75,11 +82,11 @@ function ResetPassword() {
     }));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    const password = formData.password;
-    const confirmPassword = formData.confirmPassword;
+  const password = formData.password;
+  const confirmPassword = formData.confirmPassword;
 
     const newErrors = {
       password: "",
@@ -102,8 +109,23 @@ function ResetPassword() {
 
     if (hasError) return;
 
-    navigate("/reset-success");
+    try {
+      await resetPassword({
+        email,
+        password,
+      });
+
+      navigate("/reset-success");
+
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+        "Password reset failed"
+      );
+    }
   };
+
+
 
   return (
     <main

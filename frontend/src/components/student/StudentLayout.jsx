@@ -67,8 +67,8 @@ function StudentLayout({ children }) {
           theme={theme}
         />
 
-        <main className="relative p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
-          <div className="relative rounded-[28px] min-h-[calc(100vh-120px)]">
+        <main className="relative pt-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">
+          <div className="relative rounded-[28px]">
             {children || <Outlet />}
           </div>
         </main>

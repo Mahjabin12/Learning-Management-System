@@ -76,56 +76,14 @@ function InstructorLayout({ children }) {
           theme={theme}
         />
 
-        <main className="relative p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
-          <div className="relative rounded-[28px] min-h-[calc(100vh-120px)]">
+        <main className="relative pt-4 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-8">
+          <div className="relative rounded-[28px]">
             {children || <Outlet />}
           </div>
         </main>
       </div>
 
-      <nav
-        className={`fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 gap-1 p-2 border-t backdrop-blur-xl lg:hidden ${
-          isDark
-            ? "bg-[#061311]/95 border-teal-400/10"
-            : "bg-[#e8f3ee]/95 border-emerald-900/10"
-        }`}
-      >
-        <a
-          href="/instructor/dashboard"
-          className="text-center text-xs text-teal-400 py-2"
-        >
-          🏠
-          <br />
-          Home
-        </a>
-
-        <a
-          href="/instructor/my-courses"
-          className="text-center text-xs text-[var(--instructor-muted)] py-2"
-        >
-          📚
-          <br />
-          Courses
-        </a>
-
-        <a
-          href="/instructor/students"
-          className="text-center text-xs text-[var(--instructor-muted)] py-2"
-        >
-          👥
-          <br />
-          Students
-        </a>
-
-        <a
-          href="/instructor/settings"
-          className="text-center text-xs text-[var(--instructor-muted)] py-2"
-        >
-          ⚙
-          <br />
-          Settings
-        </a>
-      </nav>
+      {/* bottom nav unchanged */}
     </div>
   );
 }

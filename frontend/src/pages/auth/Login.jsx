@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { courses } from "../../data/dummyData";
+import { loginUser } from "../../services/authApi";
 
 import {
   FaFacebookF,
@@ -16,6 +17,7 @@ function Login() {
   const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
 
   const [formData, setFormData] = useState({
@@ -48,20 +50,58 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    const email = formData.email.trim().toLowerCase();
-    const role = email === "admin@lms.com" ? "admin" : "student";
+  try {
+    setLoading(true);
 
-    login({
-      name: role === "admin" ? "Admin User" : "Student User",
-      email,
-      role,
+    const response = await loginUser({
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
     });
 
-    navigate(role === "admin" ? "/admin" : "/my-learning");
-  };
+
+    const { token, user } = response.data;
+
+
+    login(user, token);
+
+
+    if (user.role === "admin") {
+      navigate("/admin/dashboard");
+    } 
+    
+    else if (user.role === "instructor") {
+      navigate("/instructor/dashboard");
+    } 
+    
+    else {
+      navigate("/student/my-learning");
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Login error:",
+      error.response?.data || error.message
+    );
+
+
+    alert(
+      error.response?.data?.message ||
+      "Login failed"
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+
+
 
   return (
     <main
@@ -239,7 +279,7 @@ function Login() {
                     : "bg-[#061311] text-white shadow-[0_18px_40px_rgba(6,19,17,0.18)] hover:bg-emerald-700"
                 }`}
               >
-                Login
+                {loading ? "Logging in..." : "Login"}
               </button>
             </form>
 

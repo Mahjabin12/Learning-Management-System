@@ -4,78 +4,90 @@ import { Outlet } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopbar from "./AdminTopbar";
 
-function AdminLayout({ children }) {
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const isDark = theme === "dark";
+function AdminLayout({children}){
 
-  useEffect(() => {
-    const syncTheme = () => {
-      const savedTheme = localStorage.getItem("theme") || "dark";
-      setTheme(savedTheme);
+const [theme,setTheme]=useState(
+localStorage.getItem("theme") || "dark"
+);
 
-      document.body.style.backgroundColor =
-        savedTheme === "dark" ? "#061311" : "#e8f3ee";
-    };
+const [sidebarOpen,setSidebarOpen]=useState(false);
+const isDark = theme==="dark";
 
-    syncTheme();
+useEffect(()=>{
+const syncTheme=()=>{
+const saved =
+localStorage.getItem("theme") || "dark";
 
-    window.addEventListener("themechange", syncTheme);
-    window.addEventListener("storage", syncTheme);
 
-    return () => {
-      window.removeEventListener("themechange", syncTheme);
-      window.removeEventListener("storage", syncTheme);
-    };
-  }, []);
+setTheme(saved);
+document.documentElement.classList.toggle(
+"dark",
+saved==="dark"
+);
+};
 
-  const layoutBg = isDark
-    ? "bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.11),transparent_28%),linear-gradient(120deg,#061311,#071813,#020807)] text-white"
-    : "bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.14),transparent_30%),radial-gradient(circle_at_top_right,rgba(45,212,191,0.12),transparent_28%),linear-gradient(120deg,#e8f3ee,#dff0e9,#d4ebe2)] text-[#061311]";
 
-  return (
-    <div className={`min-h-screen transition-colors duration-300 ${layoutBg}`}>
-      {mobileSidebarOpen && (
-        <button
-          type="button"
-          onClick={() => setMobileSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
-          aria-label="Close sidebar overlay"
-        />
-      )}
 
-      <AdminSidebar
-        isOpen={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
-      />
+syncTheme();
 
-      <div className="min-h-screen lg:pl-72">
-        <AdminTopbar onMenuClick={() => setMobileSidebarOpen(true)} />
+window.addEventListener("themechange",syncTheme);
+window.addEventListener("storage",syncTheme);
 
-        <main className="relative p-4 sm:p-6 lg:p-8 overflow-hidden">
-          <div className="pointer-events-none absolute right-10 top-10 hidden lg:grid grid-cols-4 gap-2 opacity-40">
-            {Array.from({ length: 24 }).map((_, index) => (
-              <span
-                key={index}
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isDark ? "bg-teal-400" : "bg-emerald-500"
-                }`}
-              />
-            ))}
-          </div>
+return()=>{
+    window.removeEventListener("themechange", syncTheme);
+    window.removeEventListener("storage", syncTheme );
+};
+},[]);
 
-          <div
-            className={`relative rounded-[28px] min-h-[calc(100vh-120px)] transition-colors duration-300 ${
-              isDark ? "bg-white/[0.02]" : "bg-white/35"
-            }`}
-          >
-            {children || <Outlet />}
-          </div>
-        </main>
-      </div>
+
+return(
+
+
+<div
+className={`
+min-h-screen
+flex
+transition-colors
+${
+isDark
+?
+"bg-[#061311] text-white" :
+"bg-[#f4faf8] text-[#061311]"
+}`}>
+
+
+{/* Sidebar */}
+
+<AdminSidebar
+isOpen={sidebarOpen}
+onClose={()=>
+setSidebarOpen(false)
+} />
+
+
+{/* Right Side */}
+<div className=" flex-1 lg:ml-64 min-h-screen">
+
+{/* Topbar */}
+
+<AdminTopbar
+onMenuClick={()=> setSidebarOpen(true)}/>
+
+  {/* Main Content */}
+
+  <main className={`min-h-screen px-4 sm:px-6 lg:px-8 pb-10 ${ isDark ? "bg-[#061311]" : "bg-[#f4faf8]" }`}>
+    <div className="max-w-[1600px] mx-auto">
+    {
+    children || <Outlet/>
+    }
     </div>
-  );
+  </main>
+</div>
+
+</div>
+);
 }
+
 
 export default AdminLayout;

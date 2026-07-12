@@ -8,6 +8,9 @@ import {
   LockKeyhole,
 } from "lucide-react";
 
+import { forgotPassword } from "../../services/authApi";
+
+
 function ForgotPassword() {
   const navigate = useNavigate();
 
@@ -32,15 +35,55 @@ function ForgotPassword() {
 
   const isDark = theme === "dark";
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+
+
+  const handleSubmit = async (event) => {
+
+  event.preventDefault();
+
+
+  try {
+
+
+    const response = await forgotPassword({
+
+      email: email.trim().toLowerCase()
+
+    });
+
+
+
+    alert(
+      `Your verification code is: ${response.data.code}`
+    );
+
+
 
     navigate("/verify-code", {
-      state: {
+
+      state:{
         email: email.trim().toLowerCase(),
-      },
+        code: response.data.code
+      }
+
     });
-  };
+
+
+
+  } catch(error){
+
+
+    alert(
+      error.response?.data?.message ||
+      "Something went wrong"
+    );
+
+
+  }
+
+};
+
+
 
   const features = [
     {
