@@ -3,7 +3,11 @@ import express from "express";
 import { getStudents, getInstructors,  getUserDetails, deleteUser, getAdminSettings,updateAdminWebsite,updateAdminNotifications,
 updateLandingPage, updateAdminPassword, getActivityLogs, getInstructorApplications, approveInstructor, rejectInstructor,
 createCategory, getCategories, updateCategory, deleteCategory,
-getEnrollments, getCourses, getCourseById
+getEnrollments, getCourses, getCourseById ,
+createBlog,
+getBlogs,
+updateBlog,
+deleteBlog
 } from "../controllers/adminController.js";
 
 import { protect, isAdmin } from "../middleware/authMiddleware.js";
@@ -58,6 +62,29 @@ getEnrollments
 
 router.get("/courses", protect, isAdmin, getCourses);
 router.get("/courses/:id", protect, isAdmin, getCourseById);
+
+router.post(
+"/blogs",
+createBlog
+);
+
+
+router.get(
+"/blogs",
+getBlogs
+);
+
+
+router.patch(
+"/blogs/:id",
+updateBlog
+);
+
+
+router.delete(
+"/blogs/:id",
+deleteBlog
+);
 
 
  

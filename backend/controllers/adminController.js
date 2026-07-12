@@ -6,6 +6,7 @@ import InstructorApplication from "../models/InstructorApplication.js";
 import Category from "../models/Category.js";
 import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
+import Blog from "../models/Blog.js";
 
 // =================================
 // GET STUDENTS
@@ -738,6 +739,190 @@ export const getCourseById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+
+export const createBlog = async(req,res)=>{
+
+try{
+
+
+const blog =
+await Blog.create({
+
+title:req.body.title,
+
+category:req.body.category,
+
+description:req.body.description,
+
+image:req.body.image,
+
+date:req.body.date,
+
+readTime:req.body.readTime,
+
+content:req.body.content
+
+});
+
+
+res.status(201).json({
+
+success:true,
+
+message:"Blog created successfully",
+
+blog
+
+});
+
+
+}
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
+});
+
+}
+
+};
+
+export const getBlogs = async(req,res)=>{
+
+try{
+
+
+const blogs =
+await Blog.find()
+.sort({
+createdAt:-1
+});
+
+
+res.status(200).json({
+
+success:true,
+
+count:blogs.length,
+
+blogs
+
+});
+
+
+}
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
+});
+
+}
+
+};
+
+export const updateBlog = async(req,res)=>{
+
+try{
+
+
+const blog =
+await Blog.findByIdAndUpdate(
+
+req.params.id,
+
+req.body,
+
+{
+new:true
+}
+
+);
+
+
+res.status(200).json({
+
+success:true,
+
+message:"Blog updated",
+
+blog
+
+});
+
+
+}
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
+});
+
+}
+
+};
+
+export const deleteBlog = async(req,res)=>{
+
+try{
+
+
+await Blog.findByIdAndDelete(
+req.params.id
+);
+
+
+res.status(200).json({
+
+success:true,
+
+message:"Blog deleted"
+
+});
+
+
+}
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
+});
+
+}
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
