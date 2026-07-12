@@ -194,3 +194,46 @@ export const getCourses = () => {
 export const getCourseById = (id) => {
   return api.get(`/admin/courses/${id}`);
 };
+
+
+// BLOG
+
+export const getBlogs = ()=>{
+
+return api.get(
+"/admin/blogs"
+);
+
+};
+
+
+
+export const createBlog = (data)=>{
+
+return api.post(
+"/admin/blogs",
+data
+);
+
+};
+
+
+
+export const updateBlog = (id,data)=>{
+
+return api.patch(
+`/admin/blogs/${id}`,
+data
+);
+
+};
+
+
+
+export const deleteBlog = (id)=>{
+
+return api.delete(
+`/admin/blogs/${id}`
+);
+
+};
